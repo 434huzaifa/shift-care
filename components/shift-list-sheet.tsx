@@ -14,6 +14,7 @@ import { IoAdd } from "react-icons/io5";
 import { CreateShiftForm } from "./create-shift-form";
 import { Spinner } from "@/components/ui/spinner";
 import { showError } from "@/lib/toast";
+import { expandShiftOccurrences, ShiftOccurrence } from "@/lib/shift-utils";
 
 interface Shift {
   id: number;
@@ -57,7 +58,7 @@ export function ShiftListSheet({
   onRefreshShifts,
 }: ShiftListSheetProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [shifts, setShifts] = useState<Shift[]>([]);
+  const [shifts, setShifts] = useState<ShiftOccurrence[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
 
@@ -72,20 +73,35 @@ export function ShiftListSheet({
 
     setIsLoading(true);
     try {
-      // Use local date boundaries instead of UTC
-      const startDate = selectedDate.startOf("day").format("YYYY-MM-DD");
-      const endDate = selectedDate.endOf("day").format("YYYY-MM-DD");
+      // Fetch shifts for the specific date
+      const dateStr = selectedDate.format("YYYY-MM-DD");
       
       const response = await fetch(
-        `/api/shift?startDate=${startDate}&endDate=${endDate}&limit=100`
+        `/api/shift?startDate=${dateStr}&endDate=${dateStr}&limit=1000`
       );
       
       if (response.ok) {
         const data = await response.json();
-        // Sort shifts by shift_start_time
-        const sortedShifts = (data.shifts || []).sort((a: Shift, b: Shift) => 
+        console.log('[ShiftListSheet] Raw API response:', data.shifts?.length, 'shifts');
+        
+        // Use the same expandShiftOccurrences function that the calendar uses
+        const allOccurrences: ShiftOccurrence[] = [];
+        (data.shifts || []).forEach((shift: Shift) => {
+          const occurrences = expandShiftOccurrences(
+            shift,
+            selectedDate,
+            selectedDate
+          );
+          allOccurrences.push(...occurrences);
+        });
+        
+        console.log('[ShiftListSheet] Expanded to', allOccurrences.length, 'occurrences for date', dateStr);
+        
+        // Sort by shift_start_time
+        const sortedShifts = allOccurrences.sort((a, b) => 
           a.shift_start_time.localeCompare(b.shift_start_time)
         );
+        
         setShifts(sortedShifts);
       }
     } catch (error) {

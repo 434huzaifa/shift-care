@@ -1,11 +1,11 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import type { FormApi } from "@tanstack/react-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Select from "react-select";
 import {
   Sheet,
   SheetContent,
@@ -14,20 +14,136 @@ import {
   SheetTitle,
   SheetFooter,
 } from "@/components/ui/sheet";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { showSuccess, showError } from "@/lib/toast";
 import { Spinner } from "@/components/ui/spinner";
 import dayjs from "dayjs";
 import { RRuleGenerator } from "./rrule-generator";
 import { RRule } from "rrule";
+import DatePicker, { ReactDatePickerCustomHeaderProps } from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { getYear, getMonth } from "date-fns";
+
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+] as const;
+
+const range = (start: number, end: number, step: number) => {
+  const result: number[] = [];
+  for (let i = start; i < end; i += step) {
+    result.push(i);
+  }
+  return result;
+};
+
+const years = range(1990, getYear(new Date()) + 1, 1);
+
+interface CustomHeaderProps extends ReactDatePickerCustomHeaderProps {
+  selectDate?: (date: Date) => void;
+}
+
+const CustomHeader = ({
+  date,
+  changeYear,
+  changeMonth,
+  decreaseMonth,
+  increaseMonth,
+  prevMonthButtonDisabled,
+  nextMonthButtonDisabled,
+  selectDate,
+}: CustomHeaderProps) => {
+  const handleTodayClick = () => {
+    const today = new Date();
+    if (selectDate) {
+      selectDate(today);
+    }
+    changeYear(getYear(today));
+    changeMonth(getMonth(today));
+  };
+
+  return (
+    <div
+      style={{
+        margin: 10,
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "8px",
+        }}
+      >
+        <button
+          type="button"
+          onClick={decreaseMonth}
+          disabled={prevMonthButtonDisabled}
+          className="px-2 py-1 hover:bg-gray-100 rounded disabled:opacity-50"
+        >
+          {"<"}
+        </button>
+        <select
+          value={getYear(date)}
+          onChange={({ target: { value } }) => changeYear(+value)}
+          className="px-2 py-1 border rounded"
+        >
+          {years.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={MONTHS[getMonth(date)]}
+          onChange={({ target: { value } }) =>
+            changeMonth(MONTHS.indexOf(value as (typeof MONTHS)[number]))
+          }
+          className="px-2 py-1 border rounded"
+        >
+          {MONTHS.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+
+        <button
+          type="button"
+          onClick={increaseMonth}
+          disabled={nextMonthButtonDisabled}
+          className="px-2 py-1 hover:bg-gray-100 rounded disabled:opacity-50"
+        >
+          {">"}
+        </button>
+      </div>
+      <div style={{ display: "flex", justifyContent: "center" }}>
+        <button
+          type="button"
+          onClick={handleTodayClick}
+          className="px-3 py-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded text-sm"
+        >
+          Today
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const shiftSchema = z.object({
   staffId: z.number().min(1, "Staff is required"),
@@ -112,6 +228,7 @@ export function CreateShiftForm({
   const [isLoadingCarer, setIsLoadingCarer] = useState(false);
   const [rrule, setRrule] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
+  const sheetRef = useRef<HTMLDivElement>(null);
   const isEditMode = !!shiftData;
 
   const form = useForm({
@@ -193,7 +310,9 @@ export function CreateShiftForm({
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to ${isEditMode ? "update" : "create"} shift`);
+          const errorData = await response.json().catch(() => ({}));
+          const errorMessage = errorData.error || errorData.message || `Failed to ${isEditMode ? "update" : "create"} shift`;
+          throw new Error(errorMessage);
         }
 
         showSuccess(
@@ -204,10 +323,10 @@ export function CreateShiftForm({
         onSuccess?.();
         form.reset();
         setRrule("");
-      } catch {
+      } catch (error: any) {
         showError(
           `Failed to ${isEditMode ? "update" : "create"} shift`,
-          "Please try again"
+          error.message || "Please try again"
         );
       } finally {
         setIsSubmitting(false);
@@ -276,7 +395,7 @@ export function CreateShiftForm({
     if (open) {
       fetchStaff();
     }
-  }, [open, form]);
+  }, [open]);
 
   // Fetch carer
   useEffect(() => {
@@ -299,11 +418,11 @@ export function CreateShiftForm({
     if (open) {
       fetchCarer();
     }
-  }, [open, form]);
+  }, [open]);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-[700px] overflow-y-auto">
+      <SheetContent className="sm:max-w-175 overflow-y-auto" ref={sheetRef}>
         <SheetHeader>
           <SheetTitle>{isEditMode ? "Edit Shift" : "Add New Shift"}</SheetTitle>
           <SheetDescription>
@@ -328,21 +447,21 @@ export function CreateShiftForm({
               <div className="space-y-2">
                 <Label htmlFor="staffId">Staff *</Label>
                 <Select
-                  value={field.state.value ? field.state.value.toString() : ""}
-                  onValueChange={(value) => field.handleChange(parseInt(value))}
-                  disabled={isLoadingStaff}
-                >
-                  <SelectTrigger id="staffId">
-                    <SelectValue placeholder="Select staff" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {staffList.map((staff) => (
-                      <SelectItem key={staff.id} value={staff.id.toString()}>
-                        {staff.name} ({staff.email})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  id="staffId"
+                  options={staffList.map((staff) => ({
+                    value: staff.id,
+                    label: `${staff.name} (${staff.email})`,
+                  }))}
+                  value={staffList.find(s => s.id === field.state.value) ? {
+                    value: field.state.value,
+                    label: `${staffList.find(s => s.id === field.state.value)?.name} (${staffList.find(s => s.id === field.state.value)?.email})`
+                  } : null}
+                  onChange={(option) => field.handleChange(option?.value || 0)}
+                  placeholder="Select staff"
+                  isDisabled={isLoadingStaff}
+                  isClearable
+                  classNamePrefix="select"
+                />
                 {field.state.meta.errors && (
                   <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
                 )}
@@ -356,21 +475,21 @@ export function CreateShiftForm({
               <div className="space-y-2">
                 <Label htmlFor="carerId">Carer *</Label>
                 <Select
-                  value={field.state.value ? field.state.value.toString() : ""}
-                  onValueChange={(value) => field.handleChange(parseInt(value))}
-                  disabled={isLoadingCarer}
-                >
-                  <SelectTrigger id="carerId">
-                    <SelectValue placeholder="Select carer" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {carerList.map((carer) => (
-                      <SelectItem key={carer.id} value={carer.id.toString()}>
-                        {carer.name} ({carer.email})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  id="carerId"
+                  options={carerList.map((carer) => ({
+                    value: carer.id,
+                    label: `${carer.name} (${carer.email})`,
+                  }))}
+                  value={carerList.find(c => c.id === field.state.value) ? {
+                    value: field.state.value,
+                    label: `${carerList.find(c => c.id === field.state.value)?.name} (${carerList.find(c => c.id === field.state.value)?.email})`
+                  } : null}
+                  onChange={(option) => field.handleChange(option?.value || 0)}
+                  placeholder="Select carer"
+                  isDisabled={isLoadingCarer}
+                  isClearable
+                  classNamePrefix="select"
+                />
                 {field.state.meta.errors && (
                   <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
                 )}
@@ -405,19 +524,18 @@ export function CreateShiftForm({
                 <div className="space-y-2">
                   <Label htmlFor="priceType">Price Type *</Label>
                   <Select
-                    value={field.state.value}
-                    onValueChange={(value) => field.handleChange(value as ShiftFormData["priceType"])}
-                  >
-                    <SelectTrigger id="priceType">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="HOURLY">Hourly</SelectItem>
-                      <SelectItem value="DAILY">Daily</SelectItem>
-                      <SelectItem value="WEEKLY">Weekly</SelectItem>
-                      <SelectItem value="MONTHLY">Monthly</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    id="priceType"
+                    options={[
+                      { value: "HOURLY", label: "Hourly" },
+                      { value: "DAILY", label: "Daily" },
+                      { value: "WEEKLY", label: "Weekly" },
+                      { value: "MONTHLY", label: "Monthly" },
+                    ]}
+                    value={field.state.value ? { value: field.state.value, label: field.state.value.charAt(0) + field.state.value.slice(1).toLowerCase() } : null}
+                    onChange={(option) => field.handleChange(option?.value as ShiftFormData["priceType"])}
+                    placeholder="Select price type"
+                    classNamePrefix="select"
+                  />
                 </div>
               )}
             </form.Field>
@@ -428,11 +546,26 @@ export function CreateShiftForm({
             {(field) => (
               <div className="space-y-2">
                 <Label htmlFor="startDate">Start Date *</Label>
-                <Input
+                <DatePicker
                   id="startDate"
-                  type="date"
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
+                  selected={field.state.value ? dayjs(field.state.value).toDate() : null}
+                  onChange={(date) => {
+                    if (date) {
+                      field.handleChange(dayjs(date).format('YYYY-MM-DD'));
+                    }
+                  }}
+                  renderCustomHeader={(props) => (
+                    <CustomHeader
+                      {...props}
+                      selectDate={(date) => {
+                        field.handleChange(dayjs(date).format('YYYY-MM-DD'));
+                      }}
+                    />
+                  )}
+                  dateFormat="dd/MM/yyyy"
+                  placeholderText="Select date"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                  wrapperClassName="w-full"
                 />
                 {field.state.meta.errors && (
                   <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
@@ -447,11 +580,23 @@ export function CreateShiftForm({
               {(field) => (
                 <div className="space-y-2">
                   <Label htmlFor="shift_start_time">Shift Start Time *</Label>
-                  <Input
+                  <DatePicker
                     id="shift_start_time"
-                    type="time"
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
+                    selected={field.state.value ? dayjs(`2000-01-01 ${field.state.value}`).toDate() : null}
+                    onChange={(date) => {
+                      if (date) {
+                        field.handleChange(dayjs(date).format('HH:mm'));
+                      }
+                    }}
+                    showTimeSelect
+                    showTimeSelectOnly
+                    timeIntervals={30}
+                    timeCaption="Time"
+                    dateFormat="HH:mm"
+                    timeFormat="HH:mm"
+                    placeholderText="Select time"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                    wrapperClassName="w-full"
                   />
                   {field.state.meta.errors && (
                     <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
@@ -464,11 +609,23 @@ export function CreateShiftForm({
               {(field) => (
                 <div className="space-y-2">
                   <Label htmlFor="shift_end_time">Shift End Time *</Label>
-                  <Input
+                  <DatePicker
                     id="shift_end_time"
-                    type="time"
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
+                    selected={field.state.value ? dayjs(`2000-01-01 ${field.state.value}`).toDate() : null}
+                    onChange={(date) => {
+                      if (date) {
+                        field.handleChange(dayjs(date).format('HH:mm'));
+                      }
+                    }}
+                    showTimeSelect
+                    showTimeSelectOnly
+                    timeIntervals={30}
+                    timeCaption="Time"
+                    dateFormat="HH:mm"
+                    timeFormat="HH:mm"
+                    placeholderText="Select time"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                    wrapperClassName="w-full"
                   />
                   {field.state.meta.errors && (
                     <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
@@ -481,12 +638,15 @@ export function CreateShiftForm({
           {/* End Date (Read-only, auto-calculated) */}
           <div className="space-y-2">
             <Label htmlFor="endDate">End Date (Auto-calculated)</Label>
-            <Input
+            <DatePicker
               id="endDate"
-              type="date"
-              value={endDate}
-              readOnly
-              className="bg-muted cursor-not-allowed"
+              selected={endDate ? dayjs(endDate).toDate() : null}
+              renderCustomHeader={(props) => <CustomHeader {...props} />}
+              dateFormat="dd/MM/yyyy"
+              disabled
+              placeholderText="Auto-calculated"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+              wrapperClassName="w-full"
             />
             <p className="text-xs text-muted-foreground">
               {rrule ? "Calculated from recurrence rule" : "Same as start date (no recurrence)"}

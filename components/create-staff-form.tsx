@@ -5,6 +5,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Select from "react-select";
 import {
   Sheet,
   SheetContent,
@@ -23,24 +24,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import { useState, useEffect } from "react";
 import { showSuccess, showError } from "@/lib/toast";
 import { Spinner } from "@/components/ui/spinner";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 const staffSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -100,8 +86,6 @@ export function CreateStaffForm({
   const [cityInput, setCityInput] = useState("");
   const [isLoadingCountries, setIsLoadingCountries] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [openNationalityCombobox, setOpenNationalityCombobox] = useState(false);
-  const [openLocationCombobox, setOpenLocationCombobox] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
@@ -509,71 +493,38 @@ export function CreateStaffForm({
                     </span>
                   </div>
                 ) : (
-                  <Popover open={openNationalityCombobox} onOpenChange={setOpenNationalityCombobox}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={openNationalityCombobox}
-                        className="w-full justify-between font-normal"
-                      >
-                        {field.state.value ? (
-                          <div className="flex items-center gap-2">
-                            <img
-                              src={countries.find((c) => c.name.common === field.state.value)?.flags.svg}
-                              alt=""
-                              className="h-4 w-6 object-cover rounded-sm"
-                            />
-                            <span>{field.state.value}</span>
-                          </div>
-                        ) : (
-                          "Select nationality"
-                        )}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-100 p-0">
-                      <Command>
-                        <CommandInput placeholder="Search country..." />
-                        <CommandList>
-                          <CommandEmpty>No country found.</CommandEmpty>
-                          <CommandGroup>
-                            {countries.map((country, index) => (
-                              <CommandItem
-                                key={index}
-                                value={country.name.common}
-                                onSelect={(currentValue) => {
-                                  const selectedCountry = countries.find(
-                                    (c) => c.name.common.toLowerCase() === currentValue.toLowerCase()
-                                  );
-                                  if (selectedCountry) {
-                                    field.handleChange(selectedCountry.name.common);
-                                    form.setFieldValue("nationalityFlag", selectedCountry.flags.svg);
-                                  }
-                                  setOpenNationalityCombobox(false);
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    field.state.value?.toLowerCase() === country.name.common.toLowerCase()
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                                <img
-                                  src={country.flags.svg}
-                                  alt=""
-                                  className="h-4 w-6 object-cover rounded-sm mr-2"
-                                />
-                                {country.name.common}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                  <Select
+                    id="nationality"
+                    options={countries.map((country) => ({
+                      value: country.name.common,
+                      label: country.name.common,
+                      flag: country.flags.svg,
+                    }))}
+                    value={field.state.value ? {
+                      value: field.state.value,
+                      label: field.state.value,
+                      flag: countries.find(c => c.name.common === field.state.value)?.flags.svg
+                    } : null}
+                    onChange={(option) => {
+                      if (option) {
+                        field.handleChange(option.value);
+                        form.setFieldValue("nationalityFlag", option.flag);
+                      }
+                    }}
+                    formatOptionLabel={(option: any) => (
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={option.flag}
+                          alt=""
+                          style={{ height: '16px', width: '24px', objectFit: 'cover', borderRadius: '2px' }}
+                        />
+                        <span>{option.label}</span>
+                      </div>
+                    )}
+                    placeholder="Select nationality"
+                    isClearable
+                    classNamePrefix="select"
+                  />
                 )}
                 {field.state.meta.errors && (
                   <p className="text-sm text-destructive">
@@ -597,76 +548,46 @@ export function CreateStaffForm({
                       </span>
                     </div>
                   ) : (
-                    <Popover open={openLocationCombobox} onOpenChange={setOpenLocationCombobox}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          aria-expanded={openLocationCombobox}
-                          className="w-full justify-between font-normal"
-                        >
-                          {selectedCountry ? (
-                            <div className="flex items-center gap-2">
-                              <img
-                                src={selectedCountry.flags.svg}
-                                alt=""
-                                className="h-4 w-6 object-cover rounded-sm"
-                              />
-                              <span>{selectedCountry.name.common}</span>
-                            </div>
-                          ) : (
-                            "Select country"
-                          )}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-100 p-0">
-                        <Command>
-                          <CommandInput placeholder="Search country..." />
-                          <CommandList>
-                            <CommandEmpty>No country found.</CommandEmpty>
-                            <CommandGroup>
-                              {countries.map((country, index) => (
-                                <CommandItem
-                                  key={index}
-                                  value={country.name.common}
-                                  onSelect={(currentValue) => {
-                                    const selectedCountry = countries.find(
-                                      (c) => c.name.common.toLowerCase() === currentValue.toLowerCase()
-                                    );
-                                    setSelectedCountry(selectedCountry || null);
-                                    if (selectedCountry) {
-                                      form.setFieldValue("locationFlag", selectedCountry.flags.svg);
-                                      // Set location to just country name when city is empty
-                                      const location = cityInput.trim()
-                                        ? `${cityInput.trim()}, ${selectedCountry.name.common}`
-                                        : selectedCountry.name.common;
-                                      field.handleChange(location);
-                                    }
-                                    setOpenLocationCombobox(false);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      selectedCountry?.name.common === country.name.common
-                                        ? "opacity-100"
-                                        : "opacity-0"
-                                    )}
-                                  />
-                                  <img
-                                    src={country.flags.svg}
-                                    alt=""
-                                    className="h-4 w-6 object-cover rounded-sm mr-2"
-                                  />
-                                  {country.name.common}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                    <Select
+                      id="location"
+                      options={countries.map((country) => ({
+                        value: country.name.common,
+                        label: country.name.common,
+                        flag: country.flags.svg,
+                      }))}
+                      value={selectedCountry ? {
+                        value: selectedCountry.name.common,
+                        label: selectedCountry.name.common,
+                        flag: selectedCountry.flags.svg
+                      } : null}
+                      onChange={(option) => {
+                        const selected = option ? countries.find(c => c.name.common === option.value) : null;
+                        setSelectedCountry(selected || null);
+                        if (selected) {
+                          form.setFieldValue("locationFlag", selected.flags.svg);
+                          const location = cityInput.trim()
+                            ? `${cityInput.trim()}, ${selected.name.common}`
+                            : selected.name.common;
+                          field.handleChange(location);
+                        } else {
+                          field.handleChange("");
+                          setCityInput("");
+                        }
+                      }}
+                      formatOptionLabel={(option: any) => (
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={option.flag}
+                            alt=""
+                            style={{ height: '16px', width: '24px', objectFit: 'cover', borderRadius: '2px' }}
+                          />
+                          <span>{option.label}</span>
+                        </div>
+                      )}
+                      placeholder="Select country"
+                      isClearable
+                      classNamePrefix="select"
+                    />
                   )}
                   <Input
                     id="location-city"
@@ -698,19 +619,23 @@ export function CreateStaffForm({
             {(field) => (
               <div className="space-y-2">
                 <Label htmlFor="gender">Gender *</Label>
-                <select
+                <Select
                   id="gender"
-                  value={field.state.value}
-                  onChange={(e) => {
-                    const value = e.target.value as "MALE" | "FEMALE";
-                    field.handleChange(value);
+                  options={[
+                    { value: "MALE", label: "Male" },
+                    { value: "FEMALE", label: "Female" },
+                  ]}
+                  value={field.state.value ? {
+                    value: field.state.value,
+                    label: field.state.value === "MALE" ? "Male" : "Female"
+                  } : null}
+                  onChange={(option) => {
+                    if (option) {
+                      field.handleChange(option.value as "MALE" | "FEMALE");
+                    }
                   }}
-                  onBlur={field.handleBlur}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                >
-                  <option value="MALE">Male</option>
-                  <option value="FEMALE">Female</option>
-                </select>
+                  classNamePrefix="select"
+                />
                 {field.state.meta.errors && (
                   <p className="text-sm text-destructive">
                     {field.state.meta.errors.join(", ")}
@@ -724,21 +649,27 @@ export function CreateStaffForm({
             {(field) => (
               <div className="space-y-2">
                 <Label htmlFor="status">Status *</Label>
-                <select
+                <Select
                   id="status"
-                  value={field.state.value}
-                  onChange={(e) => {
-                    const value = e.target.value as "ACTIVE" | "INACTIVE" | "ON_LEAVE" | "TERMINATED";
-                    field.handleChange(value);
+                  options={[
+                    { value: "ACTIVE", label: "Active" },
+                    { value: "INACTIVE", label: "Inactive" },
+                    { value: "ON_LEAVE", label: "On Leave" },
+                    { value: "TERMINATED", label: "Terminated" },
+                  ]}
+                  value={field.state.value ? {
+                    value: field.state.value,
+                    label: field.state.value === "ACTIVE" ? "Active" : 
+                           field.state.value === "INACTIVE" ? "Inactive" : 
+                           field.state.value === "ON_LEAVE" ? "On Leave" : "Terminated"
+                  } : null}
+                  onChange={(option) => {
+                    if (option) {
+                      field.handleChange(option.value as "ACTIVE" | "INACTIVE" | "ON_LEAVE" | "TERMINATED");
+                    }
                   }}
-                  onBlur={field.handleBlur}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                >
-                  <option value="ACTIVE">Active</option>
-                  <option value="INACTIVE">Inactive</option>
-                  <option value="ON_LEAVE">On Leave</option>
-                  <option value="TERMINATED">Terminated</option>
-                </select>
+                  classNamePrefix="select"
+                />
                 {field.state.meta.errors && (
                   <p className="text-sm text-destructive">
                     {field.state.meta.errors.join(", ")}

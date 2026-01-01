@@ -26,6 +26,7 @@ import {
 import { useState } from "react";
 import { showSuccess, showError } from "@/lib/toast";
 import { Spinner } from "@/components/ui/spinner";
+import Select from "react-select";
 
 const carerSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -306,19 +307,23 @@ export function CreateCarerForm({
             {(field) => (
               <div className="space-y-2">
                 <Label htmlFor="gender">Gender *</Label>
-                <select
+                <Select
                   id="gender"
-                  value={field.state.value}
-                  onChange={(e) => {
-                    const value = e.target.value as "MALE" | "FEMALE";
-                    field.handleChange(value);
+                  options={[
+                    { value: "MALE", label: "Male" },
+                    { value: "FEMALE", label: "Female" },
+                  ]}
+                  value={field.state.value ? {
+                    value: field.state.value,
+                    label: field.state.value === "MALE" ? "Male" : "Female"
+                  } : null}
+                  onChange={(option) => {
+                    if (option) {
+                      field.handleChange(option.value as "MALE" | "FEMALE");
+                    }
                   }}
-                  onBlur={field.handleBlur}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                >
-                  <option value="MALE">Male</option>
-                  <option value="FEMALE">Female</option>
-                </select>
+                  classNamePrefix="select"
+                />
                 {field.state.meta.errors && (
                   <p className="text-sm text-destructive">
                     {field.state.meta.errors.join(", ")}

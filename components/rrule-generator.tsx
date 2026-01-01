@@ -1,15 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { RRule, Frequency } from "rrule";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import Select from "react-select";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -79,44 +73,49 @@ export function RRuleGenerator({ value, onChange, startDate, endTime, onEndTimeC
       return;
     }
 
-    try {
-      const options: Record<string, unknown> = {
-        freq,
-        interval,
-        dtstart: startDate.toDate(),
-      };
+    // Use a small timeout to debounce rapid changes
+    const timeoutId = setTimeout(() => {
+      try {
+        const options: Record<string, unknown> = {
+          freq,
+          interval,
+          dtstart: startDate.toDate(),
+        };
 
-      if (endType === "count" && count) {
-        options.count = count;
-        
-        // Calculate the last occurrence date and update end_time
-        if (onEndTimeChange) {
-          const tempRule = new RRule({
-            ...options,
-            byweekday: byweekday.length > 0 && freq === RRule.WEEKLY ? byweekday : undefined,
-          } as any);
-          const occurrences = tempRule.all();
-          if (occurrences.length > 0) {
-            const lastOccurrence = occurrences[occurrences.length - 1];
-            onEndTimeChange(dayjs(lastOccurrence).format("YYYY-MM-DDTHH:mm"));
+        if (endType === "count" && count) {
+          options.count = count;
+          
+          // Calculate the last occurrence date and update end_time
+          if (onEndTimeChange) {
+            const tempRule = new RRule({
+              ...options,
+              byweekday: byweekday.length > 0 && freq === RRule.WEEKLY ? byweekday : undefined,
+            } as any);
+            const occurrences = tempRule.all();
+            if (occurrences.length > 0) {
+              const lastOccurrence = occurrences[occurrences.length - 1];
+              onEndTimeChange(dayjs(lastOccurrence).format("YYYY-MM-DDTHH:mm"));
+            }
           }
+        } else if (endTime) {
+          // Use the end_time from the form as until date
+          options.until = new Date(endTime);
         }
-      } else if (endTime) {
-        // Use the end_time from the form as until date
-        options.until = new Date(endTime);
-      }
 
-      if (byweekday.length > 0 && freq === RRule.WEEKLY) {
-        options.byweekday = byweekday;
-      }
+        if (byweekday.length > 0 && freq === RRule.WEEKLY) {
+          options.byweekday = byweekday;
+        }
 
-      const rule = new RRule(options);
-      const rruleString = rule.toString().split("\n")[1]; // Get only RRULE part
-      onChange(rruleString);
-    } catch (error) {
-      console.error("Error generating RRule:", error);
-      onChange("");
-    }
+        const rule = new RRule(options);
+        const rruleString = rule.toString().split("\n")[1]; // Get only RRULE part
+        onChange(rruleString);
+      } catch (error) {
+        console.error("Error generating RRule:", error);
+        onChange("");
+      }
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
   }, [enabled, freq, interval, count, byweekday, endType, startDate, endTime, onChange]);
 
   const handleWeekdayToggle = (day: number) => {
@@ -125,7 +124,7 @@ export function RRuleGenerator({ value, onChange, startDate, endTime, onEndTimeC
     );
   };
 
-  const getReadableRule = () => {
+  const readableRule = useMemo(() => {
     if (!enabled || !value) return "No recurrence";
 
     try {
@@ -135,9 +134,9 @@ export function RRuleGenerator({ value, onChange, startDate, endTime, onEndTimeC
     } catch {
       return "Invalid rule";
     }
-  };
+  }, [enabled, value, startDate]);
 
-  const getOccurrenceCount = () => {
+  const occurrenceCount = useMemo(() => {
     if (!enabled || !value) return 0;
 
     try {
@@ -150,7 +149,7 @@ export function RRuleGenerator({ value, onChange, startDate, endTime, onEndTimeC
     } catch {
       return 0;
     }
-  };
+  }, [enabled, value, startDate]);
 
   return (
     <div className="space-y-4 border rounded-lg p-4">
@@ -180,19 +179,17 @@ export function RRuleGenerator({ value, onChange, startDate, endTime, onEndTimeC
                   className="w-20"
                 />
                 <Select
-                  value={freq.toString()}
-                  onValueChange={(value) => setFreq(parseInt(value) as Frequency)}
-                >
-                  <SelectTrigger className="flex-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={RRule.DAILY.toString()}>Day(s)</SelectItem>
-                    <SelectItem value={RRule.WEEKLY.toString()}>Week(s)</SelectItem>
-                    <SelectItem value={RRule.MONTHLY.toString()}>Month(s)</SelectItem>
-                    <SelectItem value={RRule.YEARLY.toString()}>Year(s)</SelectItem>
-                  </SelectContent>
-                </Select>
+                  options={[
+                    { value: RRule.DAILY, label: "Day(s)" },
+                    { value: RRule.WEEKLY, label: "Week(s)" },
+                    { value: RRule.MONTHLY, label: "Month(s)" },
+                    { value: RRule.YEARLY, label: "Year(s)" },
+                  ]}
+                  value={{ value: freq, label: freq === RRule.DAILY ? "Day(s)" : freq === RRule.WEEKLY ? "Week(s)" : freq === RRule.MONTHLY ? "Month(s)" : "Year(s)" }}
+                  onChange={(option) => option && setFreq(option.value as Frequency)}
+                  classNamePrefix="select"
+                  className="flex-1"
+                />
               </div>
             </div>
           </div>
@@ -219,15 +216,15 @@ export function RRuleGenerator({ value, onChange, startDate, endTime, onEndTimeC
           {/* End Type */}
           <div className="space-y-2">
             <Label>Ends</Label>
-            <Select value={endType} onValueChange={(value) => setEndType(value as typeof endType)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="never">Never</SelectItem>
-                <SelectItem value="count">After number of occurrences</SelectItem>
-              </SelectContent>
-            </Select>
+            <Select
+              options={[
+                { value: "never", label: "Never" },
+                { value: "count", label: "After number of occurrences" },
+              ]}
+              value={{ value: endType, label: endType === "never" ? "Never" : "After number of occurrences" }}
+              onChange={(option) => option && setEndType(option.value as typeof endType)}
+              classNamePrefix="select"
+            />
           </div>
 
           {/* Count Input */}
@@ -247,11 +244,11 @@ export function RRuleGenerator({ value, onChange, startDate, endTime, onEndTimeC
           {/* Readable Summary */}
           <div className="p-3 bg-muted rounded-md space-y-1">
             <p className="text-sm text-muted-foreground">
-              <strong>Summary:</strong> {getReadableRule()}
+              <strong>Summary:</strong> {readableRule}
             </p>
-            {getOccurrenceCount() > 0 && (
+            {occurrenceCount > 0 && (
               <p className="text-sm text-muted-foreground">
-                <strong>Total occurrences:</strong> {getOccurrenceCount()}
+                <strong>Total occurrences:</strong> {occurrenceCount}
               </p>
             )}
           </div>
