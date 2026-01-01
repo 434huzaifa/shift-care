@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
     let body;
     try {
       body = await request.json();
-    } catch (parseError) {
+    } catch {
       return NextResponse.json(
         { error: "Invalid request data" },
         { status: 400 }
@@ -100,7 +100,6 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search');
 
     const skip = (page - 1) * limit;
-
     // Build where clause
     const where: any = {};
     
