@@ -688,6 +688,8 @@ export const CarerScalarFieldEnum = {
   id: 'id',
   name: 'name',
   email: 'email',
+  gender: 'gender',
+  profileImage: 'profileImage',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -700,7 +702,8 @@ export const ShiftScalarFieldEnum = {
   staffId: 'staffId',
   priceAmount: 'priceAmount',
   priceType: 'priceType',
-  time: 'time',
+  start_time: 'start_time',
+  end_time: 'end_time',
   recurrenceRule: 'recurrenceRule',
   address: 'address',
   bonus: 'bonus',

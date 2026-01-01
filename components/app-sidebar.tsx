@@ -1,5 +1,6 @@
 import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
 import { MdPersonAdd, MdSchedule } from "react-icons/md";
+import { TbOld } from "react-icons/tb";
 import {
   Sidebar,
   SidebarContent,
@@ -11,8 +12,6 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
-
-
 
 export function AppSidebar() {
   return (
@@ -27,6 +26,21 @@ export function AppSidebar() {
                   <Link href="/">
                     <MdPersonAdd />
                     <span>Manage Staff</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Carer</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem key="Manage Carer">
+                <SidebarMenuButton asChild>
+                  <Link href="carer">
+                    <TbOld />
+                    <span>Carer</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

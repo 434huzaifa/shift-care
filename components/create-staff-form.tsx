@@ -14,6 +14,16 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -93,6 +103,7 @@ export function CreateStaffForm({
   const [openNationalityCombobox, setOpenNationalityCombobox] = useState(false);
   const [openLocationCombobox, setOpenLocationCombobox] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
   // Function to resize image to 256x256
   const resizeImage = (file: File): Promise<string> => {
@@ -332,10 +343,6 @@ export function CreateStaffForm({
 
   const handleDelete = async () => {
     if (!staffData) return;
-    
-    if (!confirm(`Are you sure you want to delete ${staffData.name}?`)) {
-      return;
-    }
 
     setIsSubmitting(true);
     try {
@@ -348,6 +355,7 @@ export function CreateStaffForm({
       }
 
       showSuccess("Staff deleted successfully!", `${staffData.name} has been removed from the system`);
+      setShowDeleteAlert(false);
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {
@@ -763,7 +771,7 @@ export function CreateStaffForm({
                 <Button
                   type="button"
                   variant="destructive"
-                  onClick={handleDelete}
+                  onClick={() => setShowDeleteAlert(true)}
                   disabled={isSubmitting}
                   className="mr-auto"
                 >
@@ -793,6 +801,26 @@ export function CreateStaffForm({
           </SheetFooter>
         </form>
       </SheetContent>
+
+      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete {staffData?.name}. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sheet>
   );
 }

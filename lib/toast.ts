@@ -8,6 +8,11 @@ import { toast } from "sonner";
 export const showSuccess = (message: string, description?: string) => {
   toast.success(message, {
     description,
+    style: {
+      background: "#22c55e",
+      color: "#fff",
+      border: "1px solid #16a34a",
+    },
   });
 };
 
@@ -19,7 +24,7 @@ export const showSuccess = (message: string, description?: string) => {
 export const showError = (message: string, description?: string) => {
   toast.error(message, {
     description,
-    position: "bottom-right",
+    position: "bottom-left",
     style: {
       background: "#ef4444",
       color: "#fff",

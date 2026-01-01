@@ -45,7 +45,8 @@ export type ShiftMinAggregateOutputType = {
   staffId: number | null
   priceAmount: number | null
   priceType: $Enums.PriceType | null
-  time: Date | null
+  start_time: Date | null
+  end_time: Date | null
   recurrenceRule: string | null
   address: string | null
   bonus: number | null
@@ -59,7 +60,8 @@ export type ShiftMaxAggregateOutputType = {
   staffId: number | null
   priceAmount: number | null
   priceType: $Enums.PriceType | null
-  time: Date | null
+  start_time: Date | null
+  end_time: Date | null
   recurrenceRule: string | null
   address: string | null
   bonus: number | null
@@ -73,7 +75,8 @@ export type ShiftCountAggregateOutputType = {
   staffId: number
   priceAmount: number
   priceType: number
-  time: number
+  start_time: number
+  end_time: number
   recurrenceRule: number
   address: number
   bonus: number
@@ -103,7 +106,8 @@ export type ShiftMinAggregateInputType = {
   staffId?: true
   priceAmount?: true
   priceType?: true
-  time?: true
+  start_time?: true
+  end_time?: true
   recurrenceRule?: true
   address?: true
   bonus?: true
@@ -117,7 +121,8 @@ export type ShiftMaxAggregateInputType = {
   staffId?: true
   priceAmount?: true
   priceType?: true
-  time?: true
+  start_time?: true
+  end_time?: true
   recurrenceRule?: true
   address?: true
   bonus?: true
@@ -131,7 +136,8 @@ export type ShiftCountAggregateInputType = {
   staffId?: true
   priceAmount?: true
   priceType?: true
-  time?: true
+  start_time?: true
+  end_time?: true
   recurrenceRule?: true
   address?: true
   bonus?: true
@@ -232,7 +238,8 @@ export type ShiftGroupByOutputType = {
   staffId: number
   priceAmount: number
   priceType: $Enums.PriceType
-  time: Date
+  start_time: Date
+  end_time: Date
   recurrenceRule: string | null
   address: string
   bonus: number | null
@@ -269,7 +276,8 @@ export type ShiftWhereInput = {
   staffId?: Prisma.IntFilter<"Shift"> | number
   priceAmount?: Prisma.FloatFilter<"Shift"> | number
   priceType?: Prisma.EnumPriceTypeFilter<"Shift"> | $Enums.PriceType
-  time?: Prisma.DateTimeFilter<"Shift"> | Date | string
+  start_time?: Prisma.DateTimeFilter<"Shift"> | Date | string
+  end_time?: Prisma.DateTimeFilter<"Shift"> | Date | string
   recurrenceRule?: Prisma.StringNullableFilter<"Shift"> | string | null
   address?: Prisma.StringFilter<"Shift"> | string
   bonus?: Prisma.FloatNullableFilter<"Shift"> | number | null
@@ -284,7 +292,8 @@ export type ShiftOrderByWithRelationInput = {
   staffId?: Prisma.SortOrder
   priceAmount?: Prisma.SortOrder
   priceType?: Prisma.SortOrder
-  time?: Prisma.SortOrder
+  start_time?: Prisma.SortOrder
+  end_time?: Prisma.SortOrder
   recurrenceRule?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrder
   bonus?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -302,7 +311,8 @@ export type ShiftWhereUniqueInput = Prisma.AtLeast<{
   staffId?: Prisma.IntFilter<"Shift"> | number
   priceAmount?: Prisma.FloatFilter<"Shift"> | number
   priceType?: Prisma.EnumPriceTypeFilter<"Shift"> | $Enums.PriceType
-  time?: Prisma.DateTimeFilter<"Shift"> | Date | string
+  start_time?: Prisma.DateTimeFilter<"Shift"> | Date | string
+  end_time?: Prisma.DateTimeFilter<"Shift"> | Date | string
   recurrenceRule?: Prisma.StringNullableFilter<"Shift"> | string | null
   address?: Prisma.StringFilter<"Shift"> | string
   bonus?: Prisma.FloatNullableFilter<"Shift"> | number | null
@@ -317,7 +327,8 @@ export type ShiftOrderByWithAggregationInput = {
   staffId?: Prisma.SortOrder
   priceAmount?: Prisma.SortOrder
   priceType?: Prisma.SortOrder
-  time?: Prisma.SortOrder
+  start_time?: Prisma.SortOrder
+  end_time?: Prisma.SortOrder
   recurrenceRule?: Prisma.SortOrderInput | Prisma.SortOrder
   address?: Prisma.SortOrder
   bonus?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -339,7 +350,8 @@ export type ShiftScalarWhereWithAggregatesInput = {
   staffId?: Prisma.IntWithAggregatesFilter<"Shift"> | number
   priceAmount?: Prisma.FloatWithAggregatesFilter<"Shift"> | number
   priceType?: Prisma.EnumPriceTypeWithAggregatesFilter<"Shift"> | $Enums.PriceType
-  time?: Prisma.DateTimeWithAggregatesFilter<"Shift"> | Date | string
+  start_time?: Prisma.DateTimeWithAggregatesFilter<"Shift"> | Date | string
+  end_time?: Prisma.DateTimeWithAggregatesFilter<"Shift"> | Date | string
   recurrenceRule?: Prisma.StringNullableWithAggregatesFilter<"Shift"> | string | null
   address?: Prisma.StringWithAggregatesFilter<"Shift"> | string
   bonus?: Prisma.FloatNullableWithAggregatesFilter<"Shift"> | number | null
@@ -351,7 +363,8 @@ export type ShiftScalarWhereWithAggregatesInput = {
 export type ShiftCreateInput = {
   priceAmount: number
   priceType: $Enums.PriceType
-  time: Date | string
+  start_time: Date | string
+  end_time: Date | string
   recurrenceRule?: string | null
   address: string
   bonus?: number | null
@@ -366,7 +379,8 @@ export type ShiftUncheckedCreateInput = {
   staffId: number
   priceAmount: number
   priceType: $Enums.PriceType
-  time: Date | string
+  start_time: Date | string
+  end_time: Date | string
   recurrenceRule?: string | null
   address: string
   bonus?: number | null
@@ -378,7 +392,8 @@ export type ShiftUncheckedCreateInput = {
 export type ShiftUpdateInput = {
   priceAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   priceType?: Prisma.EnumPriceTypeFieldUpdateOperationsInput | $Enums.PriceType
-  time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recurrenceRule?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   bonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -393,7 +408,8 @@ export type ShiftUncheckedUpdateInput = {
   staffId?: Prisma.IntFieldUpdateOperationsInput | number
   priceAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   priceType?: Prisma.EnumPriceTypeFieldUpdateOperationsInput | $Enums.PriceType
-  time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recurrenceRule?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   bonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -407,7 +423,8 @@ export type ShiftCreateManyInput = {
   staffId: number
   priceAmount: number
   priceType: $Enums.PriceType
-  time: Date | string
+  start_time: Date | string
+  end_time: Date | string
   recurrenceRule?: string | null
   address: string
   bonus?: number | null
@@ -419,7 +436,8 @@ export type ShiftCreateManyInput = {
 export type ShiftUpdateManyMutationInput = {
   priceAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   priceType?: Prisma.EnumPriceTypeFieldUpdateOperationsInput | $Enums.PriceType
-  time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recurrenceRule?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   bonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -433,7 +451,8 @@ export type ShiftUncheckedUpdateManyInput = {
   staffId?: Prisma.IntFieldUpdateOperationsInput | number
   priceAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   priceType?: Prisma.EnumPriceTypeFieldUpdateOperationsInput | $Enums.PriceType
-  time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recurrenceRule?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   bonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -457,7 +476,8 @@ export type ShiftCountOrderByAggregateInput = {
   staffId?: Prisma.SortOrder
   priceAmount?: Prisma.SortOrder
   priceType?: Prisma.SortOrder
-  time?: Prisma.SortOrder
+  start_time?: Prisma.SortOrder
+  end_time?: Prisma.SortOrder
   recurrenceRule?: Prisma.SortOrder
   address?: Prisma.SortOrder
   bonus?: Prisma.SortOrder
@@ -478,7 +498,8 @@ export type ShiftMaxOrderByAggregateInput = {
   staffId?: Prisma.SortOrder
   priceAmount?: Prisma.SortOrder
   priceType?: Prisma.SortOrder
-  time?: Prisma.SortOrder
+  start_time?: Prisma.SortOrder
+  end_time?: Prisma.SortOrder
   recurrenceRule?: Prisma.SortOrder
   address?: Prisma.SortOrder
   bonus?: Prisma.SortOrder
@@ -492,7 +513,8 @@ export type ShiftMinOrderByAggregateInput = {
   staffId?: Prisma.SortOrder
   priceAmount?: Prisma.SortOrder
   priceType?: Prisma.SortOrder
-  time?: Prisma.SortOrder
+  start_time?: Prisma.SortOrder
+  end_time?: Prisma.SortOrder
   recurrenceRule?: Prisma.SortOrder
   address?: Prisma.SortOrder
   bonus?: Prisma.SortOrder
@@ -573,7 +595,8 @@ export type NullableFloatFieldUpdateOperationsInput = {
 export type ShiftCreateWithoutStaffInput = {
   priceAmount: number
   priceType: $Enums.PriceType
-  time: Date | string
+  start_time: Date | string
+  end_time: Date | string
   recurrenceRule?: string | null
   address: string
   bonus?: number | null
@@ -586,7 +609,8 @@ export type ShiftUncheckedCreateWithoutStaffInput = {
   id?: number
   priceAmount: number
   priceType: $Enums.PriceType
-  time: Date | string
+  start_time: Date | string
+  end_time: Date | string
   recurrenceRule?: string | null
   address: string
   bonus?: number | null
@@ -628,7 +652,8 @@ export type ShiftScalarWhereInput = {
   staffId?: Prisma.IntFilter<"Shift"> | number
   priceAmount?: Prisma.FloatFilter<"Shift"> | number
   priceType?: Prisma.EnumPriceTypeFilter<"Shift"> | $Enums.PriceType
-  time?: Prisma.DateTimeFilter<"Shift"> | Date | string
+  start_time?: Prisma.DateTimeFilter<"Shift"> | Date | string
+  end_time?: Prisma.DateTimeFilter<"Shift"> | Date | string
   recurrenceRule?: Prisma.StringNullableFilter<"Shift"> | string | null
   address?: Prisma.StringFilter<"Shift"> | string
   bonus?: Prisma.FloatNullableFilter<"Shift"> | number | null
@@ -641,7 +666,8 @@ export type ShiftCreateManyStaffInput = {
   id?: number
   priceAmount: number
   priceType: $Enums.PriceType
-  time: Date | string
+  start_time: Date | string
+  end_time: Date | string
   recurrenceRule?: string | null
   address: string
   bonus?: number | null
@@ -653,7 +679,8 @@ export type ShiftCreateManyStaffInput = {
 export type ShiftUpdateWithoutStaffInput = {
   priceAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   priceType?: Prisma.EnumPriceTypeFieldUpdateOperationsInput | $Enums.PriceType
-  time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recurrenceRule?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   bonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -666,7 +693,8 @@ export type ShiftUncheckedUpdateWithoutStaffInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   priceAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   priceType?: Prisma.EnumPriceTypeFieldUpdateOperationsInput | $Enums.PriceType
-  time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recurrenceRule?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   bonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -679,7 +707,8 @@ export type ShiftUncheckedUpdateManyWithoutStaffInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   priceAmount?: Prisma.FloatFieldUpdateOperationsInput | number
   priceType?: Prisma.EnumPriceTypeFieldUpdateOperationsInput | $Enums.PriceType
-  time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  start_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  end_time?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recurrenceRule?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   address?: Prisma.StringFieldUpdateOperationsInput | string
   bonus?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
@@ -695,7 +724,8 @@ export type ShiftSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   staffId?: boolean
   priceAmount?: boolean
   priceType?: boolean
-  time?: boolean
+  start_time?: boolean
+  end_time?: boolean
   recurrenceRule?: boolean
   address?: boolean
   bonus?: boolean
@@ -710,7 +740,8 @@ export type ShiftSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   staffId?: boolean
   priceAmount?: boolean
   priceType?: boolean
-  time?: boolean
+  start_time?: boolean
+  end_time?: boolean
   recurrenceRule?: boolean
   address?: boolean
   bonus?: boolean
@@ -725,7 +756,8 @@ export type ShiftSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   staffId?: boolean
   priceAmount?: boolean
   priceType?: boolean
-  time?: boolean
+  start_time?: boolean
+  end_time?: boolean
   recurrenceRule?: boolean
   address?: boolean
   bonus?: boolean
@@ -740,7 +772,8 @@ export type ShiftSelectScalar = {
   staffId?: boolean
   priceAmount?: boolean
   priceType?: boolean
-  time?: boolean
+  start_time?: boolean
+  end_time?: boolean
   recurrenceRule?: boolean
   address?: boolean
   bonus?: boolean
@@ -749,7 +782,7 @@ export type ShiftSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ShiftOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "staffId" | "priceAmount" | "priceType" | "time" | "recurrenceRule" | "address" | "bonus" | "instruction" | "createdAt" | "updatedAt", ExtArgs["result"]["shift"]>
+export type ShiftOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "staffId" | "priceAmount" | "priceType" | "start_time" | "end_time" | "recurrenceRule" | "address" | "bonus" | "instruction" | "createdAt" | "updatedAt", ExtArgs["result"]["shift"]>
 export type ShiftInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   staff?: boolean | Prisma.StaffDefaultArgs<ExtArgs>
 }
@@ -770,7 +803,8 @@ export type $ShiftPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     staffId: number
     priceAmount: number
     priceType: $Enums.PriceType
-    time: Date
+    start_time: Date
+    end_time: Date
     recurrenceRule: string | null
     address: string
     bonus: number | null
@@ -1205,7 +1239,8 @@ export interface ShiftFieldRefs {
   readonly staffId: Prisma.FieldRef<"Shift", 'Int'>
   readonly priceAmount: Prisma.FieldRef<"Shift", 'Float'>
   readonly priceType: Prisma.FieldRef<"Shift", 'PriceType'>
-  readonly time: Prisma.FieldRef<"Shift", 'DateTime'>
+  readonly start_time: Prisma.FieldRef<"Shift", 'DateTime'>
+  readonly end_time: Prisma.FieldRef<"Shift", 'DateTime'>
   readonly recurrenceRule: Prisma.FieldRef<"Shift", 'String'>
   readonly address: Prisma.FieldRef<"Shift", 'String'>
   readonly bonus: Prisma.FieldRef<"Shift", 'Float'>

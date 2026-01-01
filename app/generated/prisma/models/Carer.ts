@@ -38,6 +38,8 @@ export type CarerMinAggregateOutputType = {
   id: number | null
   name: string | null
   email: string | null
+  gender: $Enums.Gender | null
+  profileImage: runtime.Bytes | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -46,6 +48,8 @@ export type CarerMaxAggregateOutputType = {
   id: number | null
   name: string | null
   email: string | null
+  gender: $Enums.Gender | null
+  profileImage: runtime.Bytes | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -54,6 +58,8 @@ export type CarerCountAggregateOutputType = {
   id: number
   name: number
   email: number
+  gender: number
+  profileImage: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -72,6 +78,8 @@ export type CarerMinAggregateInputType = {
   id?: true
   name?: true
   email?: true
+  gender?: true
+  profileImage?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -80,6 +88,8 @@ export type CarerMaxAggregateInputType = {
   id?: true
   name?: true
   email?: true
+  gender?: true
+  profileImage?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -88,6 +98,8 @@ export type CarerCountAggregateInputType = {
   id?: true
   name?: true
   email?: true
+  gender?: true
+  profileImage?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -183,6 +195,8 @@ export type CarerGroupByOutputType = {
   id: number
   name: string
   email: string
+  gender: $Enums.Gender
+  profileImage: runtime.Bytes | null
   createdAt: Date
   updatedAt: Date
   _count: CarerCountAggregateOutputType | null
@@ -214,6 +228,8 @@ export type CarerWhereInput = {
   id?: Prisma.IntFilter<"Carer"> | number
   name?: Prisma.StringFilter<"Carer"> | string
   email?: Prisma.StringFilter<"Carer"> | string
+  gender?: Prisma.EnumGenderFilter<"Carer"> | $Enums.Gender
+  profileImage?: Prisma.BytesNullableFilter<"Carer"> | runtime.Bytes | null
   createdAt?: Prisma.DateTimeFilter<"Carer"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Carer"> | Date | string
 }
@@ -222,6 +238,8 @@ export type CarerOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  gender?: Prisma.SortOrder
+  profileImage?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -233,6 +251,8 @@ export type CarerWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.CarerWhereInput[]
   NOT?: Prisma.CarerWhereInput | Prisma.CarerWhereInput[]
   name?: Prisma.StringFilter<"Carer"> | string
+  gender?: Prisma.EnumGenderFilter<"Carer"> | $Enums.Gender
+  profileImage?: Prisma.BytesNullableFilter<"Carer"> | runtime.Bytes | null
   createdAt?: Prisma.DateTimeFilter<"Carer"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Carer"> | Date | string
 }, "id" | "email">
@@ -241,6 +261,8 @@ export type CarerOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  gender?: Prisma.SortOrder
+  profileImage?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.CarerCountOrderByAggregateInput
@@ -257,6 +279,8 @@ export type CarerScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"Carer"> | number
   name?: Prisma.StringWithAggregatesFilter<"Carer"> | string
   email?: Prisma.StringWithAggregatesFilter<"Carer"> | string
+  gender?: Prisma.EnumGenderWithAggregatesFilter<"Carer"> | $Enums.Gender
+  profileImage?: Prisma.BytesNullableWithAggregatesFilter<"Carer"> | runtime.Bytes | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Carer"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Carer"> | Date | string
 }
@@ -264,6 +288,8 @@ export type CarerScalarWhereWithAggregatesInput = {
 export type CarerCreateInput = {
   name: string
   email: string
+  gender: $Enums.Gender
+  profileImage?: runtime.Bytes | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -272,6 +298,8 @@ export type CarerUncheckedCreateInput = {
   id?: number
   name: string
   email: string
+  gender: $Enums.Gender
+  profileImage?: runtime.Bytes | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -279,6 +307,8 @@ export type CarerUncheckedCreateInput = {
 export type CarerUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  gender?: Prisma.EnumGenderFieldUpdateOperationsInput | $Enums.Gender
+  profileImage?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -287,6 +317,8 @@ export type CarerUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  gender?: Prisma.EnumGenderFieldUpdateOperationsInput | $Enums.Gender
+  profileImage?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -295,6 +327,8 @@ export type CarerCreateManyInput = {
   id?: number
   name: string
   email: string
+  gender: $Enums.Gender
+  profileImage?: runtime.Bytes | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -302,6 +336,8 @@ export type CarerCreateManyInput = {
 export type CarerUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  gender?: Prisma.EnumGenderFieldUpdateOperationsInput | $Enums.Gender
+  profileImage?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -310,6 +346,8 @@ export type CarerUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   name?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
+  gender?: Prisma.EnumGenderFieldUpdateOperationsInput | $Enums.Gender
+  profileImage?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -318,6 +356,8 @@ export type CarerCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  gender?: Prisma.SortOrder
+  profileImage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -330,6 +370,8 @@ export type CarerMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  gender?: Prisma.SortOrder
+  profileImage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -338,6 +380,8 @@ export type CarerMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   email?: Prisma.SortOrder
+  gender?: Prisma.SortOrder
+  profileImage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -352,6 +396,8 @@ export type CarerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   id?: boolean
   name?: boolean
   email?: boolean
+  gender?: boolean
+  profileImage?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["carer"]>
@@ -360,6 +406,8 @@ export type CarerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   id?: boolean
   name?: boolean
   email?: boolean
+  gender?: boolean
+  profileImage?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["carer"]>
@@ -368,6 +416,8 @@ export type CarerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   id?: boolean
   name?: boolean
   email?: boolean
+  gender?: boolean
+  profileImage?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["carer"]>
@@ -376,11 +426,13 @@ export type CarerSelectScalar = {
   id?: boolean
   name?: boolean
   email?: boolean
+  gender?: boolean
+  profileImage?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type CarerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "createdAt" | "updatedAt", ExtArgs["result"]["carer"]>
+export type CarerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "gender" | "profileImage" | "createdAt" | "updatedAt", ExtArgs["result"]["carer"]>
 
 export type $CarerPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Carer"
@@ -389,6 +441,8 @@ export type $CarerPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     id: number
     name: string
     email: string
+    gender: $Enums.Gender
+    profileImage: runtime.Bytes | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["carer"]>
@@ -817,6 +871,8 @@ export interface CarerFieldRefs {
   readonly id: Prisma.FieldRef<"Carer", 'Int'>
   readonly name: Prisma.FieldRef<"Carer", 'String'>
   readonly email: Prisma.FieldRef<"Carer", 'String'>
+  readonly gender: Prisma.FieldRef<"Carer", 'Gender'>
+  readonly profileImage: Prisma.FieldRef<"Carer", 'Bytes'>
   readonly createdAt: Prisma.FieldRef<"Carer", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Carer", 'DateTime'>
 }

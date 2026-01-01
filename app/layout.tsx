@@ -34,7 +34,7 @@ export default function RootLayout({
             {children}
           </main>
         </SidebarProvider>
-        <Toaster position="bottom-right" />
+        <Toaster position="bottom-left" />
       </body>
     </html>
   );
