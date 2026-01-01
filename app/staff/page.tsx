@@ -3,13 +3,15 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { NextPage } from "next";
 import { CreateStaffForm } from "@/components/create-staff-form";
 import { StaffCard } from "@/components/staff-card";
 import { useState, useEffect } from "react";
+import React from "react";
 import { IoSearch, IoAdd } from "react-icons/io5";
 import { Spinner } from "@/components/ui/spinner";
-import { toast } from "sonner";
+import { showSuccess, showError } from "@/lib/toast";
 
 interface Staff {
   id: number;
@@ -23,6 +25,7 @@ interface Staff {
   status: "ACTIVE" | "INACTIVE" | "ON_LEAVE" | "TERMINATED";
   gender: "MALE" | "FEMALE";
   isFav: boolean;
+  profileImage?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -35,15 +38,32 @@ const Page: NextPage<Props> = ({}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const limit = 12;
 
   const fetchStaff = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/staff");
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: limit.toString(),
+        status: statusFilter,
+        ...(searchQuery && { search: searchQuery }),
+      });
+
+      const response = await fetch(`/api/staff?${params}`);
       const data = await response.json();
-      setStaff(data);
+      
+      if (data.staff) {
+        setStaff(data.staff);
+        setTotalPages(data.pagination.totalPages);
+        setTotal(data.pagination.total);
+      }
     } catch (error) {
-      toast.error("Failed to fetch staff");
+      showError("Failed to fetch staff", "Please try refreshing the page");
     } finally {
       setIsLoading(false);
     }
@@ -51,42 +71,59 @@ const Page: NextPage<Props> = ({}) => {
 
   useEffect(() => {
     fetchStaff();
-  }, []);
+  }, [currentPage, statusFilter, searchQuery]);
 
   const handleToggleFavorite = async (id: number) => {
     const staffMember = staff.find((s) => s.id === id);
     if (!staffMember) return;
 
+    const newFavStatus = !staffMember.isFav;
+
     try {
       // Optimistic update
       setStaff((prev) =>
-        prev.map((s) => (s.id === id ? { ...s, isFav: !s.isFav } : s))
+        prev.map((s) => (s.id === id ? { ...s, isFav: newFavStatus } : s))
       );
 
-      // TODO: Add API endpoint to update favorite status
-      toast.success(
-        staffMember.isFav ? "Removed from favorites" : "Added to favorites"
+      const response = await fetch(`/api/staff/${id}/favorite`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ isFav: newFavStatus }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update favorite status");
+      }
+
+      showSuccess(
+        newFavStatus ? "Added to favorites" : "Removed from favorites"
       );
+      
+      // Refetch to get updated order with favorites first
+      await fetchStaff();
     } catch (error) {
       // Revert on error
       setStaff((prev) =>
         prev.map((s) => (s.id === id ? { ...s, isFav: staffMember.isFav } : s))
       );
-      toast.error("Failed to update favorite status");
+      showError("Failed to update favorite status", "Please try again");
     }
   };
 
-  // Filter staff based on search and status
-  const filteredStaff = staff.filter((s) => {
-    const matchesSearch =
-      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.jobTitle.toLowerCase().includes(searchQuery.toLowerCase());
+  const handleEdit = (id: number) => {
+    const staffToEdit = staff.find((s) => s.id === id);
+    if (staffToEdit) {
+      setEditingStaff(staffToEdit);
+      setIsCreateOpen(true);
+    }
+  };
 
-    const matchesStatus = statusFilter === "ALL" || s.status === statusFilter;
-
-    return matchesSearch && matchesStatus;
-  });
+  const handleCloseSheet = () => {
+    setIsCreateOpen(false);
+    setEditingStaff(null);
+  };
 
   return (
     <div className="space-y-6 p-6">
@@ -97,18 +134,27 @@ const Page: NextPage<Props> = ({}) => {
             <Input
               placeholder="Search staff by name, email, or job title..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               className="pl-9"
             />
           </div>
         </div>
-        <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+        <Button onClick={() => {
+          setEditingStaff(null);
+          setIsCreateOpen(true);
+        }} className="gap-2">
           <IoAdd className="w-5 h-5" />
           Add Staff
         </Button>
       </div>
 
-      <Tabs value={statusFilter} onValueChange={setStatusFilter}>
+      <Tabs value={statusFilter} onValueChange={(value) => {
+        setStatusFilter(value);
+        setCurrentPage(1);
+      }}>
         <TabsList>
           <TabsTrigger value="ALL">All Staff</TabsTrigger>
           <TabsTrigger value="ACTIVE">Active</TabsTrigger>
@@ -122,7 +168,7 @@ const Page: NextPage<Props> = ({}) => {
         <div className="flex items-center justify-center py-12">
           <Spinner className="w-8 h-8" />
         </div>
-      ) : filteredStaff.length === 0 ? (
+      ) : staff.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-muted-foreground">
             {searchQuery || statusFilter !== "ALL"
@@ -131,23 +177,76 @@ const Page: NextPage<Props> = ({}) => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredStaff.map((staffMember) => (
-            <StaffCard
-              key={staffMember.id}
-              staff={staffMember}
-              onToggleFavorite={handleToggleFavorite}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 auto-rows-fr">
+            {staff.map((staffMember) => (
+              <StaffCard
+                key={staffMember.id}
+                staff={staffMember}
+                onToggleFavorite={handleToggleFavorite}
+                onEdit={handleEdit}
+              />
+            ))}
+          </div>
+
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Showing {staff.length} of {total} staff members
+            </p>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(page => {
+                    // Show first page, last page, current page, and pages around current
+                    return page === 1 || 
+                           page === totalPages || 
+                           Math.abs(page - currentPage) <= 1;
+                  })
+                  .map((page, idx, array) => (
+                    <React.Fragment key={page}>
+                      {idx > 0 && array[idx - 1] !== page - 1 && (
+                        <PaginationItem key={`ellipsis-${page}`}>
+                          <span className="px-4">...</span>
+                        </PaginationItem>
+                      )}
+                      <PaginationItem>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(page)}
+                          isActive={currentPage === page}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    </React.Fragment>
+                  ))}
+                
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        </>
       )}
 
       <CreateStaffForm
         open={isCreateOpen}
-        onOpenChange={setIsCreateOpen}
+        onOpenChange={handleCloseSheet}
         onSuccess={() => {
           fetchStaff();
         }}
+        staffData={editingStaff}
       />
     </div>
   );

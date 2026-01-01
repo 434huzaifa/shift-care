@@ -46,6 +46,7 @@ export type StaffMinAggregateOutputType = {
   status: $Enums.Status | null
   gender: $Enums.Gender | null
   isFav: boolean | null
+  profileImage: runtime.Bytes | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -62,6 +63,7 @@ export type StaffMaxAggregateOutputType = {
   status: $Enums.Status | null
   gender: $Enums.Gender | null
   isFav: boolean | null
+  profileImage: runtime.Bytes | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -78,6 +80,7 @@ export type StaffCountAggregateOutputType = {
   status: number
   gender: number
   isFav: number
+  profileImage: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -104,6 +107,7 @@ export type StaffMinAggregateInputType = {
   status?: true
   gender?: true
   isFav?: true
+  profileImage?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -120,6 +124,7 @@ export type StaffMaxAggregateInputType = {
   status?: true
   gender?: true
   isFav?: true
+  profileImage?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -136,6 +141,7 @@ export type StaffCountAggregateInputType = {
   status?: true
   gender?: true
   isFav?: true
+  profileImage?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -239,6 +245,7 @@ export type StaffGroupByOutputType = {
   status: $Enums.Status
   gender: $Enums.Gender
   isFav: boolean
+  profileImage: runtime.Bytes | null
   createdAt: Date
   updatedAt: Date
   _count: StaffCountAggregateOutputType | null
@@ -278,6 +285,7 @@ export type StaffWhereInput = {
   status?: Prisma.EnumStatusFilter<"Staff"> | $Enums.Status
   gender?: Prisma.EnumGenderFilter<"Staff"> | $Enums.Gender
   isFav?: Prisma.BoolFilter<"Staff"> | boolean
+  profileImage?: Prisma.BytesNullableFilter<"Staff"> | runtime.Bytes | null
   createdAt?: Prisma.DateTimeFilter<"Staff"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Staff"> | Date | string
   shifts?: Prisma.ShiftListRelationFilter
@@ -295,6 +303,7 @@ export type StaffOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   gender?: Prisma.SortOrder
   isFav?: Prisma.SortOrder
+  profileImage?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   shifts?: Prisma.ShiftOrderByRelationAggregateInput
@@ -315,6 +324,7 @@ export type StaffWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumStatusFilter<"Staff"> | $Enums.Status
   gender?: Prisma.EnumGenderFilter<"Staff"> | $Enums.Gender
   isFav?: Prisma.BoolFilter<"Staff"> | boolean
+  profileImage?: Prisma.BytesNullableFilter<"Staff"> | runtime.Bytes | null
   createdAt?: Prisma.DateTimeFilter<"Staff"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Staff"> | Date | string
   shifts?: Prisma.ShiftListRelationFilter
@@ -332,6 +342,7 @@ export type StaffOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   gender?: Prisma.SortOrder
   isFav?: Prisma.SortOrder
+  profileImage?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.StaffCountOrderByAggregateInput
@@ -356,6 +367,7 @@ export type StaffScalarWhereWithAggregatesInput = {
   status?: Prisma.EnumStatusWithAggregatesFilter<"Staff"> | $Enums.Status
   gender?: Prisma.EnumGenderWithAggregatesFilter<"Staff"> | $Enums.Gender
   isFav?: Prisma.BoolWithAggregatesFilter<"Staff"> | boolean
+  profileImage?: Prisma.BytesNullableWithAggregatesFilter<"Staff"> | runtime.Bytes | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Staff"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Staff"> | Date | string
 }
@@ -371,6 +383,7 @@ export type StaffCreateInput = {
   status?: $Enums.Status
   gender: $Enums.Gender
   isFav?: boolean
+  profileImage?: runtime.Bytes | null
   createdAt?: Date | string
   updatedAt?: Date | string
   shifts?: Prisma.ShiftCreateNestedManyWithoutStaffInput
@@ -388,6 +401,7 @@ export type StaffUncheckedCreateInput = {
   status?: $Enums.Status
   gender: $Enums.Gender
   isFav?: boolean
+  profileImage?: runtime.Bytes | null
   createdAt?: Date | string
   updatedAt?: Date | string
   shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutStaffInput
@@ -404,6 +418,7 @@ export type StaffUpdateInput = {
   status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
   gender?: Prisma.EnumGenderFieldUpdateOperationsInput | $Enums.Gender
   isFav?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  profileImage?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   shifts?: Prisma.ShiftUpdateManyWithoutStaffNestedInput
@@ -421,6 +436,7 @@ export type StaffUncheckedUpdateInput = {
   status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
   gender?: Prisma.EnumGenderFieldUpdateOperationsInput | $Enums.Gender
   isFav?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  profileImage?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   shifts?: Prisma.ShiftUncheckedUpdateManyWithoutStaffNestedInput
@@ -438,6 +454,7 @@ export type StaffCreateManyInput = {
   status?: $Enums.Status
   gender: $Enums.Gender
   isFav?: boolean
+  profileImage?: runtime.Bytes | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -453,6 +470,7 @@ export type StaffUpdateManyMutationInput = {
   status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
   gender?: Prisma.EnumGenderFieldUpdateOperationsInput | $Enums.Gender
   isFav?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  profileImage?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -469,6 +487,7 @@ export type StaffUncheckedUpdateManyInput = {
   status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
   gender?: Prisma.EnumGenderFieldUpdateOperationsInput | $Enums.Gender
   isFav?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  profileImage?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -485,6 +504,7 @@ export type StaffCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   gender?: Prisma.SortOrder
   isFav?: Prisma.SortOrder
+  profileImage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -505,6 +525,7 @@ export type StaffMaxOrderByAggregateInput = {
   status?: Prisma.SortOrder
   gender?: Prisma.SortOrder
   isFav?: Prisma.SortOrder
+  profileImage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -521,6 +542,7 @@ export type StaffMinOrderByAggregateInput = {
   status?: Prisma.SortOrder
   gender?: Prisma.SortOrder
   isFav?: Prisma.SortOrder
+  profileImage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -552,6 +574,10 @@ export type EnumGenderFieldUpdateOperationsInput = {
 
 export type BoolFieldUpdateOperationsInput = {
   set?: boolean
+}
+
+export type NullableBytesFieldUpdateOperationsInput = {
+  set?: runtime.Bytes | null
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -591,6 +617,7 @@ export type StaffCreateWithoutShiftsInput = {
   status?: $Enums.Status
   gender: $Enums.Gender
   isFav?: boolean
+  profileImage?: runtime.Bytes | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -607,6 +634,7 @@ export type StaffUncheckedCreateWithoutShiftsInput = {
   status?: $Enums.Status
   gender: $Enums.Gender
   isFav?: boolean
+  profileImage?: runtime.Bytes | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -638,6 +666,7 @@ export type StaffUpdateWithoutShiftsInput = {
   status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
   gender?: Prisma.EnumGenderFieldUpdateOperationsInput | $Enums.Gender
   isFav?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  profileImage?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -654,6 +683,7 @@ export type StaffUncheckedUpdateWithoutShiftsInput = {
   status?: Prisma.EnumStatusFieldUpdateOperationsInput | $Enums.Status
   gender?: Prisma.EnumGenderFieldUpdateOperationsInput | $Enums.Gender
   isFav?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  profileImage?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -701,6 +731,7 @@ export type StaffSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   status?: boolean
   gender?: boolean
   isFav?: boolean
+  profileImage?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   shifts?: boolean | Prisma.Staff$shiftsArgs<ExtArgs>
@@ -719,6 +750,7 @@ export type StaffSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   status?: boolean
   gender?: boolean
   isFav?: boolean
+  profileImage?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["staff"]>
@@ -735,6 +767,7 @@ export type StaffSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   status?: boolean
   gender?: boolean
   isFav?: boolean
+  profileImage?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["staff"]>
@@ -751,11 +784,12 @@ export type StaffSelectScalar = {
   status?: boolean
   gender?: boolean
   isFav?: boolean
+  profileImage?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type StaffOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "jobTitle" | "nationality" | "nationalityFlag" | "location" | "locationFlag" | "status" | "gender" | "isFav" | "createdAt" | "updatedAt", ExtArgs["result"]["staff"]>
+export type StaffOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "jobTitle" | "nationality" | "nationalityFlag" | "location" | "locationFlag" | "status" | "gender" | "isFav" | "profileImage" | "createdAt" | "updatedAt", ExtArgs["result"]["staff"]>
 export type StaffInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   shifts?: boolean | Prisma.Staff$shiftsArgs<ExtArgs>
   _count?: boolean | Prisma.StaffCountOutputTypeDefaultArgs<ExtArgs>
@@ -780,6 +814,7 @@ export type $StaffPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     status: $Enums.Status
     gender: $Enums.Gender
     isFav: boolean
+    profileImage: runtime.Bytes | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["staff"]>
@@ -1217,6 +1252,7 @@ export interface StaffFieldRefs {
   readonly status: Prisma.FieldRef<"Staff", 'Status'>
   readonly gender: Prisma.FieldRef<"Staff", 'Gender'>
   readonly isFav: Prisma.FieldRef<"Staff", 'Boolean'>
+  readonly profileImage: Prisma.FieldRef<"Staff", 'Bytes'>
   readonly createdAt: Prisma.FieldRef<"Staff", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Staff", 'DateTime'>
 }

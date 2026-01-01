@@ -81,6 +81,7 @@ export const StaffScalarFieldEnum = {
   status: 'status',
   gender: 'gender',
   isFav: 'isFav',
+  profileImage: 'profileImage',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

@@ -27,7 +27,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { useState, useEffect } from "react";
-import { toast } from "sonner";
+import { showSuccess, showError } from "@/lib/toast";
 import { Spinner } from "@/components/ui/spinner";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -43,6 +43,7 @@ const staffSchema = z.object({
   status: z.enum(["ACTIVE", "INACTIVE", "ON_LEAVE", "TERMINATED"]),
   gender: z.enum(["MALE", "FEMALE"]),
   isFav: z.boolean(),
+  profileImage: z.string().optional(),
 });
 
 type StaffFormData = z.infer<typeof staffSchema>;
@@ -62,12 +63,27 @@ interface CreateStaffFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+  staffData?: {
+    id: number;
+    name: string;
+    email: string;
+    jobTitle: string;
+    nationality: string;
+    nationalityFlag?: string | null;
+    location: string;
+    locationFlag?: string | null;
+    status: "ACTIVE" | "INACTIVE" | "ON_LEAVE" | "TERMINATED";
+    gender: "MALE" | "FEMALE";
+    isFav: boolean;
+    profileImage?: string | null;
+  } | null;
 }
 
 export function CreateStaffForm({
   open,
   onOpenChange,
   onSuccess,
+  staffData,
 }: CreateStaffFormProps) {
   const [countries, setCountries] = useState<Country[]>([]);
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(null);
@@ -76,6 +92,53 @@ export function CreateStaffForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [openNationalityCombobox, setOpenNationalityCombobox] = useState(false);
   const [openLocationCombobox, setOpenLocationCombobox] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  // Function to resize image to 256x256
+  const resizeImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      if (file.size > 5 * 1024 * 1024) {
+        reject(new Error("Image must be less than 5MB"));
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = 256;
+          canvas.height = 256;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            reject(new Error("Failed to get canvas context"));
+            return;
+          }
+          ctx.drawImage(img, 0, 0, 256, 256);
+          const resizedBase64 = canvas.toDataURL("image/jpeg", 0.9);
+          resolve(resizedBase64);
+        };
+        img.onerror = () => reject(new Error("Failed to load image"));
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const resizedImage = await resizeImage(file);
+      setImagePreview(resizedImage);
+      form.setFieldValue("profileImage", resizedImage);
+    } catch (error: any) {
+      showError("Image upload failed", error.message);
+      e.target.value = "";
+    }
+  };
 
   useEffect(() => {
     const fetchCountries = async () => {
@@ -93,12 +156,12 @@ export function CreateStaffForm({
         } else {
           console.error("Invalid countries data:", data);
           setCountries([]);
-          toast.error("Failed to load countries");
+          showError("Failed to load countries", "Please try again");
         }
       } catch (error) {
         console.error("Error fetching countries:", error);
         setCountries([]);
-        toast.error("Failed to load countries");
+        showError("Failed to load countries", "Please refresh the page");
       } finally {
         setIsLoadingCountries(false);
       }
@@ -109,8 +172,93 @@ export function CreateStaffForm({
     }
   }, [open]);
 
+  // Parse location and set selected country for edit mode
+  useEffect(() => {
+    if (staffData && open && countries.length > 0) {
+      const locationParts = staffData.location.split(", ");
+      if (locationParts.length === 2) {
+        setCityInput(locationParts[0]);
+        const countryName = locationParts[1];
+        const country = countries.find(c => c.name.common === countryName);
+        if (country) {
+          setSelectedCountry(country);
+        }
+      }
+      // Set image preview if profile image exists
+      if (staffData.profileImage) {
+        if (typeof staffData.profileImage === 'string') {
+          setImagePreview(staffData.profileImage);
+        } else if (typeof staffData.profileImage === 'object') {
+          // Raw Buffer object with numeric keys
+          const byteArray = Object.values(staffData.profileImage as any);
+          const buffer = Buffer.from(byteArray as number[]);
+          const base64 = buffer.toString('base64');
+          setImagePreview(`data:image/jpeg;base64,${base64}`);
+        }
+      }
+      
+      // Update form values for edit mode
+      form.setFieldValue("name", staffData.name);
+      form.setFieldValue("email", staffData.email);
+      form.setFieldValue("jobTitle", staffData.jobTitle);
+      form.setFieldValue("nationality", staffData.nationality);
+      form.setFieldValue("nationalityFlag", staffData.nationalityFlag || "");
+      form.setFieldValue("location", staffData.location);
+      form.setFieldValue("locationFlag", staffData.locationFlag || "");
+      form.setFieldValue("status", staffData.status);
+      form.setFieldValue("gender", staffData.gender);
+      form.setFieldValue("isFav", staffData.isFav);
+      
+      if (staffData.profileImage) {
+        if (typeof staffData.profileImage === 'string') {
+          form.setFieldValue("profileImage", staffData.profileImage);
+        } else if (typeof staffData.profileImage === 'object') {
+          const byteArray = Object.values(staffData.profileImage as any);
+          const buffer = Buffer.from(byteArray as number[]);
+          form.setFieldValue("profileImage", buffer.toString('base64'));
+        }
+      }
+    }
+  }, [staffData, open, countries]);
+
+  // Reset form and states when closing
+  useEffect(() => {
+    if (!open) {
+      setCityInput("");
+      setSelectedCountry(null);
+      setImagePreview(null);
+      if (!staffData) {
+        form.reset();
+      }
+    }
+  }, [open, staffData]);
+
   const form = useForm({
-    defaultValues: {
+    defaultValues: staffData ? {
+      name: staffData.name,
+      email: staffData.email,
+      jobTitle: staffData.jobTitle,
+      nationality: staffData.nationality,
+      nationalityFlag: staffData.nationalityFlag || "",
+      location: staffData.location,
+      locationFlag: staffData.locationFlag || "",
+      status: staffData.status,
+      gender: staffData.gender,
+      isFav: staffData.isFav,
+      profileImage: (() => {
+        if (!staffData.profileImage) return "";
+        if (typeof staffData.profileImage === 'string') {
+          return staffData.profileImage;
+        }
+        if (typeof staffData.profileImage === 'object') {
+          // Raw Buffer object with numeric keys
+          const byteArray = Object.values(staffData.profileImage as any);
+          const buffer = Buffer.from(byteArray as number[]);
+          return buffer.toString('base64');
+        }
+        return "";
+      })(),
+    } : {
       name: "",
       email: "",
       jobTitle: "",
@@ -121,12 +269,16 @@ export function CreateStaffForm({
       status: "ACTIVE",
       gender: "MALE",
       isFav: false,
+      profileImage: "",
     } as StaffFormData,
     onSubmit: async ({ value }) => {
       setIsSubmitting(true);
       try {
-        const response = await fetch("/api/staff", {
-          method: "POST",
+        const url = staffData ? `/api/staff/${staffData.id}` : "/api/staff";
+        const method = staffData ? "PUT" : "POST";
+        
+        const response = await fetch(url, {
+          method,
           headers: {
             "Content-Type": "application/json",
           },
@@ -134,28 +286,73 @@ export function CreateStaffForm({
         });
 
         if (!response.ok) {
-          throw new Error("Failed to create staff");
+          let errorMessage = staffData ? "Failed to update staff" : "Failed to create staff";
+          
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorMessage;
+          } catch (parseError) {
+            // If JSON parsing fails, use status text or default message
+            errorMessage = response.statusText || errorMessage;
+          }
+          
+          showError(errorMessage, "Please check the form and try again");
+          return;
         }
 
-        toast.success("Staff created successfully!");
+        const result = await response.json();
+        showSuccess(
+          staffData ? "Staff updated successfully!" : "Staff created successfully!",
+          staffData ? `${value.name}'s information has been updated` : `${value.name} has been added to the team`
+        );
         onOpenChange(false);
         onSuccess?.();
         form.reset();
-      } catch (error) {
-        toast.error("Failed to create staff");
+      } catch (error: any) {
+        showError(
+          "An unexpected error occurred",
+          "Please check the form and try again"
+        );
       } finally {
         setIsSubmitting(false);
       }
     },
   });
 
+  const handleDelete = async () => {
+    if (!staffData) return;
+    
+    if (!confirm(`Are you sure you want to delete ${staffData.name}?`)) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`/api/staff/${staffData.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete staff");
+      }
+
+      showSuccess("Staff deleted successfully!", `${staffData.name} has been removed from the system`);
+      onOpenChange(false);
+      onSuccess?.();
+    } catch (error) {
+      showError("Failed to delete staff", "Please try again");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Create New Staff</SheetTitle>
+          <SheetTitle>{staffData ? "Edit Staff" : "Create New Staff"}</SheetTitle>
           <SheetDescription>
-            Add a new staff member to your team
+            {staffData ? "Update staff member information" : "Add a new staff member to your team"}
           </SheetDescription>
         </SheetHeader>
 
@@ -183,6 +380,59 @@ export function CreateStaffForm({
                     {field.state.meta.errors.join(", ")}
                   </p>
                 )}
+              </div>
+            )}
+          </form.Field>
+
+          {/* Profile Image Upload */}
+          <form.Field name="profileImage">
+            {(field) => (
+              <div className="space-y-2">
+                <Label htmlFor="profileImage">Profile Image</Label>
+                <div className="flex items-start gap-4">
+                  {imagePreview && (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-border">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setImagePreview(null);
+                          field.handleChange("");
+                          const fileInput = document.getElementById("profileImage") as HTMLInputElement;
+                          if (fileInput) fileInput.value = "";
+                        }}
+                        className="text-xs"
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <Input
+                      id="profileImage"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="cursor-pointer"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Max 5MB. Image will be resized to 256x256px
+                    </p>
+                    {staffData && !imagePreview && (
+                      <p className="text-xs text-muted-foreground mt-1 italic">
+                        No profile image set
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </form.Field>
@@ -274,19 +524,20 @@ export function CreateStaffForm({
                                 key={index}
                                 value={country.name.common}
                                 onSelect={(currentValue) => {
-                                  field.handleChange(currentValue === field.state.value ? "" : currentValue);
                                   const selectedCountry = countries.find(
                                     (c) => c.name.common.toLowerCase() === currentValue.toLowerCase()
                                   );
-                                  setSelectedCountry(selectedCountry || null);
-                                  form.setFieldValue("nationalityFlag", selectedCountry?.flags.svg || "");
+                                  if (selectedCountry) {
+                                    field.handleChange(selectedCountry.name.common);
+                                    form.setFieldValue("nationalityFlag", selectedCountry.flags.svg);
+                                  }
                                   setOpenNationalityCombobox(false);
                                 }}
                               >
                                 <Check
                                   className={cn(
                                     "mr-2 h-4 w-4",
-                                    field.state.value === country.name.common
+                                    field.state.value?.toLowerCase() === country.name.common.toLowerCase()
                                       ? "opacity-100"
                                       : "opacity-0"
                                   )}
@@ -491,24 +742,38 @@ export function CreateStaffForm({
           </form.Field>
 
           <SheetFooter className="pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Spinner className="mr-2" />
-                  Creating...
-                </>
-              ) : (
-                "Create Staff"
+            <div className="flex w-full gap-2">
+              {staffData && (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={handleDelete}
+                  disabled={isSubmitting}
+                  className="mr-auto"
+                >
+                  Delete
+                </Button>
               )}
-            </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={isSubmitting}
+                className={!staffData ? "ml-auto" : ""}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Spinner className="mr-2" />
+                    {staffData ? "Updating..." : "Creating..."}
+                  </>
+                ) : (
+                  staffData ? "Update Staff" : "Create Staff"
+                )}
+              </Button>
+            </div>
           </SheetFooter>
         </form>
       </SheetContent>
