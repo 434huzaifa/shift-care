@@ -232,6 +232,7 @@ export type CarerWhereInput = {
   profileImage?: Prisma.BytesNullableFilter<"Carer"> | runtime.Bytes | null
   createdAt?: Prisma.DateTimeFilter<"Carer"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Carer"> | Date | string
+  shifts?: Prisma.ShiftListRelationFilter
 }
 
 export type CarerOrderByWithRelationInput = {
@@ -242,6 +243,7 @@ export type CarerOrderByWithRelationInput = {
   profileImage?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  shifts?: Prisma.ShiftOrderByRelationAggregateInput
 }
 
 export type CarerWhereUniqueInput = Prisma.AtLeast<{
@@ -255,6 +257,7 @@ export type CarerWhereUniqueInput = Prisma.AtLeast<{
   profileImage?: Prisma.BytesNullableFilter<"Carer"> | runtime.Bytes | null
   createdAt?: Prisma.DateTimeFilter<"Carer"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Carer"> | Date | string
+  shifts?: Prisma.ShiftListRelationFilter
 }, "id" | "email">
 
 export type CarerOrderByWithAggregationInput = {
@@ -292,6 +295,7 @@ export type CarerCreateInput = {
   profileImage?: runtime.Bytes | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  shifts?: Prisma.ShiftCreateNestedManyWithoutCarerInput
 }
 
 export type CarerUncheckedCreateInput = {
@@ -302,6 +306,7 @@ export type CarerUncheckedCreateInput = {
   profileImage?: runtime.Bytes | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  shifts?: Prisma.ShiftUncheckedCreateNestedManyWithoutCarerInput
 }
 
 export type CarerUpdateInput = {
@@ -311,6 +316,7 @@ export type CarerUpdateInput = {
   profileImage?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  shifts?: Prisma.ShiftUpdateManyWithoutCarerNestedInput
 }
 
 export type CarerUncheckedUpdateInput = {
@@ -321,6 +327,7 @@ export type CarerUncheckedUpdateInput = {
   profileImage?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  shifts?: Prisma.ShiftUncheckedUpdateManyWithoutCarerNestedInput
 }
 
 export type CarerCreateManyInput = {
@@ -390,6 +397,108 @@ export type CarerSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
 }
 
+export type CarerScalarRelationFilter = {
+  is?: Prisma.CarerWhereInput
+  isNot?: Prisma.CarerWhereInput
+}
+
+export type CarerCreateNestedOneWithoutShiftsInput = {
+  create?: Prisma.XOR<Prisma.CarerCreateWithoutShiftsInput, Prisma.CarerUncheckedCreateWithoutShiftsInput>
+  connectOrCreate?: Prisma.CarerCreateOrConnectWithoutShiftsInput
+  connect?: Prisma.CarerWhereUniqueInput
+}
+
+export type CarerUpdateOneRequiredWithoutShiftsNestedInput = {
+  create?: Prisma.XOR<Prisma.CarerCreateWithoutShiftsInput, Prisma.CarerUncheckedCreateWithoutShiftsInput>
+  connectOrCreate?: Prisma.CarerCreateOrConnectWithoutShiftsInput
+  upsert?: Prisma.CarerUpsertWithoutShiftsInput
+  connect?: Prisma.CarerWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CarerUpdateToOneWithWhereWithoutShiftsInput, Prisma.CarerUpdateWithoutShiftsInput>, Prisma.CarerUncheckedUpdateWithoutShiftsInput>
+}
+
+export type CarerCreateWithoutShiftsInput = {
+  name: string
+  email: string
+  gender: $Enums.Gender
+  profileImage?: runtime.Bytes | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type CarerUncheckedCreateWithoutShiftsInput = {
+  id?: number
+  name: string
+  email: string
+  gender: $Enums.Gender
+  profileImage?: runtime.Bytes | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type CarerCreateOrConnectWithoutShiftsInput = {
+  where: Prisma.CarerWhereUniqueInput
+  create: Prisma.XOR<Prisma.CarerCreateWithoutShiftsInput, Prisma.CarerUncheckedCreateWithoutShiftsInput>
+}
+
+export type CarerUpsertWithoutShiftsInput = {
+  update: Prisma.XOR<Prisma.CarerUpdateWithoutShiftsInput, Prisma.CarerUncheckedUpdateWithoutShiftsInput>
+  create: Prisma.XOR<Prisma.CarerCreateWithoutShiftsInput, Prisma.CarerUncheckedCreateWithoutShiftsInput>
+  where?: Prisma.CarerWhereInput
+}
+
+export type CarerUpdateToOneWithWhereWithoutShiftsInput = {
+  where?: Prisma.CarerWhereInput
+  data: Prisma.XOR<Prisma.CarerUpdateWithoutShiftsInput, Prisma.CarerUncheckedUpdateWithoutShiftsInput>
+}
+
+export type CarerUpdateWithoutShiftsInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  gender?: Prisma.EnumGenderFieldUpdateOperationsInput | $Enums.Gender
+  profileImage?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type CarerUncheckedUpdateWithoutShiftsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  gender?: Prisma.EnumGenderFieldUpdateOperationsInput | $Enums.Gender
+  profileImage?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+
+/**
+ * Count Type CarerCountOutputType
+ */
+
+export type CarerCountOutputType = {
+  shifts: number
+}
+
+export type CarerCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  shifts?: boolean | CarerCountOutputTypeCountShiftsArgs
+}
+
+/**
+ * CarerCountOutputType without action
+ */
+export type CarerCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CarerCountOutputType
+   */
+  select?: Prisma.CarerCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * CarerCountOutputType without action
+ */
+export type CarerCountOutputTypeCountShiftsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ShiftWhereInput
+}
 
 
 export type CarerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -400,6 +509,8 @@ export type CarerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   profileImage?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  shifts?: boolean | Prisma.Carer$shiftsArgs<ExtArgs>
+  _count?: boolean | Prisma.CarerCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["carer"]>
 
 export type CarerSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -433,10 +544,18 @@ export type CarerSelectScalar = {
 }
 
 export type CarerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "gender" | "profileImage" | "createdAt" | "updatedAt", ExtArgs["result"]["carer"]>
+export type CarerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  shifts?: boolean | Prisma.Carer$shiftsArgs<ExtArgs>
+  _count?: boolean | Prisma.CarerCountOutputTypeDefaultArgs<ExtArgs>
+}
+export type CarerIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type CarerIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 
 export type $CarerPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Carer"
-  objects: {}
+  objects: {
+    shifts: Prisma.$ShiftPayload<ExtArgs>[]
+  }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
     name: string
@@ -839,6 +958,7 @@ readonly fields: CarerFieldRefs;
  */
 export interface Prisma__CarerClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  shifts<T extends Prisma.Carer$shiftsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Carer$shiftsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ShiftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -892,6 +1012,10 @@ export type CarerFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.Interna
    */
   omit?: Prisma.CarerOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CarerInclude<ExtArgs> | null
+  /**
    * Filter, which Carer to fetch.
    */
   where: Prisma.CarerWhereUniqueInput
@@ -910,6 +1034,10 @@ export type CarerFindUniqueOrThrowArgs<ExtArgs extends runtime.Types.Extensions.
    */
   omit?: Prisma.CarerOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CarerInclude<ExtArgs> | null
+  /**
    * Filter, which Carer to fetch.
    */
   where: Prisma.CarerWhereUniqueInput
@@ -927,6 +1055,10 @@ export type CarerFindFirstArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Omit specific fields from the Carer
    */
   omit?: Prisma.CarerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CarerInclude<ExtArgs> | null
   /**
    * Filter, which Carer to fetch.
    */
@@ -976,6 +1108,10 @@ export type CarerFindFirstOrThrowArgs<ExtArgs extends runtime.Types.Extensions.I
    */
   omit?: Prisma.CarerOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CarerInclude<ExtArgs> | null
+  /**
    * Filter, which Carer to fetch.
    */
   where?: Prisma.CarerWhereInput
@@ -1024,6 +1160,10 @@ export type CarerFindManyArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    */
   omit?: Prisma.CarerOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CarerInclude<ExtArgs> | null
+  /**
    * Filter, which Carers to fetch.
    */
   where?: Prisma.CarerWhereInput
@@ -1066,6 +1206,10 @@ export type CarerCreateArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
    * Omit specific fields from the Carer
    */
   omit?: Prisma.CarerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CarerInclude<ExtArgs> | null
   /**
    * The data needed to create a Carer.
    */
@@ -1112,6 +1256,10 @@ export type CarerUpdateArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
    * Omit specific fields from the Carer
    */
   omit?: Prisma.CarerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CarerInclude<ExtArgs> | null
   /**
    * The data needed to update a Carer.
    */
@@ -1179,6 +1327,10 @@ export type CarerUpsertArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
    */
   omit?: Prisma.CarerOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CarerInclude<ExtArgs> | null
+  /**
    * The filter to search for the Carer to update in case it exists.
    */
   where: Prisma.CarerWhereUniqueInput
@@ -1205,6 +1357,10 @@ export type CarerDeleteArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
    */
   omit?: Prisma.CarerOmit<ExtArgs> | null
   /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CarerInclude<ExtArgs> | null
+  /**
    * Filter which Carer to delete.
    */
   where: Prisma.CarerWhereUniqueInput
@@ -1225,6 +1381,30 @@ export type CarerDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
 }
 
 /**
+ * Carer.shifts
+ */
+export type Carer$shiftsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Shift
+   */
+  select?: Prisma.ShiftSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Shift
+   */
+  omit?: Prisma.ShiftOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ShiftInclude<ExtArgs> | null
+  where?: Prisma.ShiftWhereInput
+  orderBy?: Prisma.ShiftOrderByWithRelationInput | Prisma.ShiftOrderByWithRelationInput[]
+  cursor?: Prisma.ShiftWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ShiftScalarFieldEnum | Prisma.ShiftScalarFieldEnum[]
+}
+
+/**
  * Carer without action
  */
 export type CarerDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1236,4 +1416,8 @@ export type CarerDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
    * Omit specific fields from the Carer
    */
   omit?: Prisma.CarerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CarerInclude<ExtArgs> | null
 }

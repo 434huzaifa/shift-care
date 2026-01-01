@@ -56,16 +56,22 @@ model Carer {
   profileImage Bytes?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  shifts Shift[]
 }
 
 model Shift {
   id             Int       @id @default(autoincrement())
   staffId        Int
+  carerId        Int
   priceAmount    Float
   priceType      PriceType
   start_time     DateTime
   end_time       DateTime
+  hours          Float?
   recurrenceRule String?
+  occurrences    Int?
+  summary        String?
   address        String
   bonus          Float?
   instruction    String?
@@ -73,6 +79,8 @@ model Shift {
   updatedAt      DateTime  @updatedAt
 
   staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  carer Carer @relation(fields: [carerId], references: [id], onDelete: Cascade)
 
   @@index([staffId])
+  @@index([carerId])
 }
