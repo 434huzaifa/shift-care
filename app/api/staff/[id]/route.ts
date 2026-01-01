@@ -65,11 +65,11 @@ export async function PUT(
     };
 
     return NextResponse.json(staffResponse);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error updating staff:", error);
     
     // Handle record not found
-    if (error.code === 'P2025') {
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2025') {
       return NextResponse.json(
         { error: "Staff member not found" },
         { status: 404 }
@@ -77,7 +77,7 @@ export async function PUT(
     }
     
     // Handle unique constraint violations
-    if (error.code === 'P2002') {
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002') {
       return NextResponse.json(
         { error: "A staff member with this email already exists" },
         { status: 409 }
@@ -112,11 +112,11 @@ export async function DELETE(
     });
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error deleting staff:", error);
     
     // Handle record not found
-    if (error.code === 'P2025') {
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2025') {
       return NextResponse.json(
         { error: "Staff member not found or already deleted" },
         { status: 404 }
@@ -124,7 +124,7 @@ export async function DELETE(
     }
     
     // Handle foreign key constraints
-    if (error.code === 'P2003') {
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2003') {
       return NextResponse.json(
         { error: "Cannot delete staff member due to existing related records" },
         { status: 409 }

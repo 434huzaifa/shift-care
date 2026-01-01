@@ -49,11 +49,11 @@ export async function PATCH(
     };
 
     return NextResponse.json(staffResponse);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error updating favorite status:", error);
     
     // Handle record not found
-    if (error.code === 'P2025') {
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2025') {
       return NextResponse.json(
         { error: "Staff member not found" },
         { status: 404 }

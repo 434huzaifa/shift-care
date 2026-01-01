@@ -57,18 +57,18 @@ export async function POST(request: NextRequest) {
     };
 
     return NextResponse.json(staffResponse, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error creating staff:", error);
     
     // Handle Prisma-specific errors
-    if (error.code === 'P2002') {
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002') {
       return NextResponse.json(
         { error: "A staff member with this email already exists" },
         { status: 409 }
       );
     }
     
-    if (error.code === 'P2003') {
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2003') {
       return NextResponse.json(
         { error: "Invalid reference in the data" },
         { status: 400 }
@@ -76,9 +76,9 @@ export async function POST(request: NextRequest) {
     }
     
     // Handle validation errors
-    if (error.name === 'ValidationError') {
+    if (typeof error === 'object' && error !== null && 'name' in error && error.name === 'ValidationError') {
       return NextResponse.json(
-        { error: error.message || "Validation failed" },
+        { error: ('message' in error ? error.message : "Validation failed") || "Validation failed" },
         { status: 400 }
       );
     }
@@ -147,11 +147,11 @@ export async function GET(request: NextRequest) {
         totalPages: Math.ceil(total / limit),
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching staff:", error);
     
     // Handle database connection errors
-    if (error.code === 'P1001' || error.code === 'P1002') {
+    if (typeof error === 'object' && error !== null && 'code' in error && (error.code === 'P1001' || error.code === 'P1002')) {
       return NextResponse.json(
         { error: "Database connection failed. Please try again later." },
         { status: 503 }

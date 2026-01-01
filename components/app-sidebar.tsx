@@ -1,5 +1,5 @@
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react"
-import { MdPersonAdd } from "react-icons/md";
+import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
+import { MdPersonAdd, MdSchedule } from "react-icons/md";
 import {
   Sidebar,
   SidebarContent,
@@ -9,16 +9,10 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
+import Link from "next/link";
 
-// Menu items.
-const items = [
-  {
-    title: "Manage Staff",
-    url: "staff",
-    icon: MdPersonAdd,
-  },
-]
+
 
 export function AppSidebar() {
   return (
@@ -28,20 +22,33 @@ export function AppSidebar() {
           <SidebarGroupLabel>Staff</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              <SidebarMenuItem key="Manage Staff">
+                <SidebarMenuButton asChild>
+                  <Link href="/">
+                    <MdPersonAdd />
+                    <span>Manage Staff</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Schedule</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem key="Manage Schedule">
+                <SidebarMenuButton asChild>
+                  <Link href="schedule">
+                    <MdSchedule />
+                    <span>Schedule</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
-  )
+  );
 }

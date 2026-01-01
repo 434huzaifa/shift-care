@@ -34,7 +34,7 @@ import { cn } from "@/lib/utils";
 
 const staffSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email address"),
+  email: z.email("Invalid email address"),
   jobTitle: z.string().min(1, "Job title is required"),
   nationality: z.string().min(1, "Nationality is required"),
   nationalityFlag: z.string().optional(),
@@ -134,8 +134,8 @@ export function CreateStaffForm({
       const resizedImage = await resizeImage(file);
       setImagePreview(resizedImage);
       form.setFieldValue("profileImage", resizedImage);
-    } catch (error: any) {
-      showError("Image upload failed", error.message);
+    } catch (error: unknown) {
+      showError("Image upload failed", error instanceof Error ? error.message : "Unknown error");
       e.target.value = "";
     }
   };
@@ -177,8 +177,17 @@ export function CreateStaffForm({
     if (staffData && open && countries.length > 0) {
       const locationParts = staffData.location.split(", ");
       if (locationParts.length === 2) {
+        // Location has city + country
         setCityInput(locationParts[0]);
         const countryName = locationParts[1];
+        const country = countries.find(c => c.name.common === countryName);
+        if (country) {
+          setSelectedCountry(country);
+        }
+      } else if (locationParts.length === 1) {
+        // Location is just country name
+        setCityInput("");
+        const countryName = locationParts[0];
         const country = countries.find(c => c.name.common === countryName);
         if (country) {
           setSelectedCountry(country);
@@ -190,8 +199,8 @@ export function CreateStaffForm({
           setImagePreview(staffData.profileImage);
         } else if (typeof staffData.profileImage === 'object') {
           // Raw Buffer object with numeric keys
-          const byteArray = Object.values(staffData.profileImage as any);
-          const buffer = Buffer.from(byteArray as number[]);
+          const byteArray = Object.values(staffData.profileImage as Record<string, number>);
+          const buffer = Buffer.from(byteArray);
           const base64 = buffer.toString('base64');
           setImagePreview(`data:image/jpeg;base64,${base64}`);
         }
@@ -213,8 +222,8 @@ export function CreateStaffForm({
         if (typeof staffData.profileImage === 'string') {
           form.setFieldValue("profileImage", staffData.profileImage);
         } else if (typeof staffData.profileImage === 'object') {
-          const byteArray = Object.values(staffData.profileImage as any);
-          const buffer = Buffer.from(byteArray as number[]);
+          const byteArray = Object.values(staffData.profileImage as Record<string, number>);
+          const buffer = Buffer.from(byteArray);
           form.setFieldValue("profileImage", buffer.toString('base64'));
         }
       }
@@ -252,8 +261,8 @@ export function CreateStaffForm({
         }
         if (typeof staffData.profileImage === 'object') {
           // Raw Buffer object with numeric keys
-          const byteArray = Object.values(staffData.profileImage as any);
-          const buffer = Buffer.from(byteArray as number[]);
+          const byteArray = Object.values(staffData.profileImage as Record<string, number>);
+          const buffer = Buffer.from(byteArray);
           return buffer.toString('base64');
         }
         return "";
@@ -276,6 +285,8 @@ export function CreateStaffForm({
       try {
         const url = staffData ? `/api/staff/${staffData.id}` : "/api/staff";
         const method = staffData ? "PUT" : "POST";
+        
+        console.log("Form submission body:", value);
         
         const response = await fetch(url, {
           method,
@@ -308,7 +319,7 @@ export function CreateStaffForm({
         onOpenChange(false);
         onSuccess?.();
         form.reset();
-      } catch (error: any) {
+      } catch (error: unknown) {
         showError(
           "An unexpected error occurred",
           "Please check the form and try again"
@@ -618,7 +629,11 @@ export function CreateStaffForm({
                                     setSelectedCountry(selectedCountry || null);
                                     if (selectedCountry) {
                                       form.setFieldValue("locationFlag", selectedCountry.flags.svg);
-                                      setCityInput("");
+                                      // Set location to just country name when city is empty
+                                      const location = cityInput.trim()
+                                        ? `${cityInput.trim()}, ${selectedCountry.name.common}`
+                                        : selectedCountry.name.common;
+                                      field.handleChange(location);
                                     }
                                     setOpenLocationCombobox(false);
                                   }}
@@ -651,13 +666,14 @@ export function CreateStaffForm({
                     onChange={(e) => {
                       setCityInput(e.target.value);
                       if (selectedCountry) {
-                        field.handleChange(
-                          `${e.target.value}, ${selectedCountry.name.common}`
-                        );
+                        const location = e.target.value.trim()
+                          ? `${e.target.value.trim()}, ${selectedCountry.name.common}`
+                          : selectedCountry.name.common;
+                        field.handleChange(location);
                       }
                     }}
                     onBlur={field.handleBlur}
-                    placeholder="Enter city"
+                    placeholder="Enter city (optional)"
                     disabled={!selectedCountry}
                   />
                 </div>

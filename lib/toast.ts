@@ -19,7 +19,7 @@ export const showSuccess = (message: string, description?: string) => {
 export const showError = (message: string, description?: string) => {
   toast.error(message, {
     description,
-    position: "bottom-left",
+    position: "bottom-right",
     style: {
       background: "#ef4444",
       color: "#fff",
@@ -70,7 +70,7 @@ export const showPromise = <T,>(
   messages: {
     loading: string;
     success: string | ((data: T) => string);
-    error: string | ((error: any) => string);
+    error: string | ((error: unknown) => string);
   }
 ) => {
   return toast.promise(promise, messages);

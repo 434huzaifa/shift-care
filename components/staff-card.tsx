@@ -64,8 +64,8 @@ export function StaffCard({ staff, onToggleFavorite, onEdit }: StaffCardProps) {
       profileImageSrc = staff.profileImage;
     } else if (typeof staff.profileImage === 'object') {
       // Raw Buffer object with numeric keys {0: 255, 1: 216, ...}
-      const byteArray = Object.values(staff.profileImage as any);
-      const buffer = Buffer.from(byteArray as number[]);
+      const byteArray = Object.values(staff.profileImage as unknown as Record<string, number>);
+      const buffer = Buffer.from(byteArray);
       profileImageSrc = `data:image/jpeg;base64,${buffer.toString('base64')}`;
     }
   }
