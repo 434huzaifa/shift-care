@@ -16,8 +16,10 @@ export interface ShiftOccurrence {
   carerId: number;
   priceAmount: number;
   priceType: string;
-  start_time: string;
-  end_time: string;
+  startDate: string;
+  shift_start_time: string;
+  shift_end_time: string;
+  endDate: string;
   address: string;
   bonus: number | null;
   instruction: string | null;
@@ -42,8 +44,10 @@ interface RawShift {
   carerId: number;
   priceAmount: number;
   priceType: string;
-  start_time: string;
-  end_time: string;
+  startDate: string;
+  shift_start_time: string;
+  shift_end_time: string;
+  endDate: string;
   address: string;
   bonus: number | null;
   instruction: string | null;
@@ -78,14 +82,11 @@ export function expandShiftOccurrences(
   
   // If no recurrence rule, return single occurrence
   if (!shift.recurrenceRule) {
-    // Parse UTC time and convert to user's local timezone
-    const shiftStart = dayjs(shift.start_time).tz(userTimezone);
-    const shiftLocalDate = shiftStart.format('YYYY-MM-DD');
+    // Use the startDate from the shift
+    const shiftLocalDate = shift.startDate;
     
     console.log(`[expandShiftOccurrences] Non-recurring shift`);
-    console.log(`[expandShiftOccurrences] DB time (UTC): ${shift.start_time}`);
-    console.log(`[expandShiftOccurrences] Local time (${userTimezone}): ${shiftStart.format('YYYY-MM-DD HH:mm:ss')}`);
-    console.log(`[expandShiftOccurrences] Local date: ${shiftLocalDate}`);
+    console.log(`[expandShiftOccurrences] Start date: ${shiftLocalDate}`);
     
     // Check if the shift falls within our date range (using local dates)
     const rangeStart = startDate.format('YYYY-MM-DD');
@@ -107,50 +108,44 @@ export function expandShiftOccurrences(
   }
 
   try {
-    // Parse the RRule
-    const rule = RRule.fromString(shift.recurrenceRule);
-    console.log(`[expandShiftOccurrences] Parsed RRule successfully`);
+    // Parse the RRule - use startDate as DTSTART
+    const dtstart = dayjs(shift.startDate).toDate();
+    const rule = RRule.fromString(shift.recurrenceRule, { dtstart });
+    console.log(`[expandShiftOccurrences] Parsed RRule successfully with DTSTART: ${shift.startDate}`);
     
-    // Get all occurrences within the date range
-    const occurrences = rule.between(
-      startDate.toDate(),
-      endDate.toDate(),
-      true // inclusive
-    );
+    // Get ALL occurrences (not filtered by date range yet)
+    // This ensures we generate all occurrences from the RRule
+    const allOccurrences = rule.all();
     
-    console.log(`[expandShiftOccurrences] Found ${occurrences.length} occurrences`);
+    console.log(`[expandShiftOccurrences] RRule generated ${allOccurrences.length} total occurrences`);
+    
+    // Filter occurrences to only those within the date range
+    const occurrences = allOccurrences.filter((date) => {
+      const occDate = dayjs(date).tz(userTimezone);
+      const occDateStr = occDate.format('YYYY-MM-DD');
+      const rangeStart = startDate.format('YYYY-MM-DD');
+      const rangeEnd = endDate.format('YYYY-MM-DD');
+      return occDateStr >= rangeStart && occDateStr <= rangeEnd;
+    });
+    
+    console.log(`[expandShiftOccurrences] Found ${occurrences.length} occurrences within date range`);
 
-    // Get the original time components from the shift (in user's timezone)
-    const originalStart = dayjs(shift.start_time).tz(userTimezone);
-    const originalEnd = dayjs(shift.end_time).tz(userTimezone);
-    const duration = originalEnd.diff(originalStart, 'minute');
-    
-    console.log(`[expandShiftOccurrences] Original time: ${originalStart.format('HH:mm')} - ${originalEnd.format('HH:mm')}`);
-    console.log(`[expandShiftOccurrences] Duration: ${duration} minutes`);
+    // The shift times are already in the correct format (no timezone conversion needed)
+    console.log(`[expandShiftOccurrences] Shift times: ${shift.shift_start_time} - ${shift.shift_end_time}`);
 
     // Create a shift occurrence for each date
     const expandedShifts = occurrences.map((occurrenceDate, index) => {
-      const occurrenceDayjs = dayjs(occurrenceDate).tz(userTimezone);
-      
-      // Combine occurrence date with original time (in user's timezone)
-      const newStartTime = occurrenceDayjs
-        .hour(originalStart.hour())
-        .minute(originalStart.minute())
-        .second(0);
-      
-      const newEndTime = newStartTime.add(duration, 'minute');
+      const occurrenceDayjs = dayjs(occurrenceDate);
       const occurrenceDateStr = occurrenceDayjs.format('YYYY-MM-DD');
       
       if (index === 0) {
         console.log(`[expandShiftOccurrences] Sample occurrence #1:`);
         console.log(`[expandShiftOccurrences]   Date: ${occurrenceDateStr}`);
-        console.log(`[expandShiftOccurrences]   Time: ${newStartTime.format('HH:mm')} - ${newEndTime.format('HH:mm')}`);
+        console.log(`[expandShiftOccurrences]   Time: ${shift.shift_start_time} - ${shift.shift_end_time}`);
       }
 
       return {
         ...shift,
-        start_time: newStartTime.toISOString(),
-        end_time: newEndTime.toISOString(),
         occurrenceDate: occurrenceDateStr,
         isRecurring: true
       };
@@ -160,11 +155,9 @@ export function expandShiftOccurrences(
   } catch (error) {
     console.error(`[expandShiftOccurrences] Error parsing RRule for shift #${shift.id}:`, error);
     // Return the original shift as fallback
-    const shiftStart = dayjs(shift.start_time).tz(userTimezone);
-    const shiftLocalDate = shiftStart.format('YYYY-MM-DD');
     return [{
       ...shift,
-      occurrenceDate: shiftLocalDate,
+      occurrenceDate: shift.startDate,
       isRecurring: false
     }];
   }
@@ -204,15 +197,14 @@ export function groupShiftsByDate(
   // Sort shifts within each day by start time
   Object.keys(groupedShifts).forEach((dateKey) => {
     groupedShifts[dateKey].sort((a, b) => {
-      const timeA = dayjs(a.start_time);
-      const timeB = dayjs(b.start_time);
-      return timeA.isBefore(timeB) ? -1 : 1;
+      // Compare shift_start_time strings directly (HH:mm format)
+      return a.shift_start_time.localeCompare(b.shift_start_time);
     });
     
     const sampleShift = groupedShifts[dateKey][0];
     console.log(`[groupShiftsByDate] Date ${dateKey}: ${groupedShifts[dateKey].length} shift(s)`);
     if (sampleShift) {
-      console.log(`[groupShiftsByDate]   Sample - DB: ${sampleShift.start_time}, Local (${userTimezone}): ${dayjs(sampleShift.start_time).tz(userTimezone).format('YYYY-MM-DD HH:mm:ss')}`);
+      console.log(`[groupShiftsByDate]   Sample - Time: ${sampleShift.shift_start_time} - ${sampleShift.shift_end_time}`);
     }
   });
 

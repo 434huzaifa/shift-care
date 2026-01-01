@@ -70,34 +70,33 @@ const Page: NextPage = () => {
   const weeks = getWeeksInMonth();
 
   // Fetch shifts for the current month
-  useEffect(() => {
-    const fetchMonthShifts = async () => {
-      console.log('[fetchMonthShifts] Starting fetch for', currentDate.format('YYYY-MM'));
-      setIsLoading(true);
+  const fetchMonthShifts = async () => {
+    console.log('[fetchMonthShifts] Starting fetch for', currentDate.format('YYYY-MM'));
+    setIsLoading(true);
+    
+    try {
+      // Get the first and last day of the month in YYYY-MM-DD format (local date)
+      const monthStart = currentDate.startOf('month').format('YYYY-MM-DD');
+      const monthEnd = currentDate.endOf('month').format('YYYY-MM-DD');
       
-      try {
-        // Get the first and last day of the month in YYYY-MM-DD format (local date)
-        const monthStart = currentDate.startOf('month').format('YYYY-MM-DD');
-        const monthEnd = currentDate.endOf('month').format('YYYY-MM-DD');
-        
-        console.log('[fetchMonthShifts] Fetching shifts from', monthStart, 'to', monthEnd);
-        
-        const response = await fetch(
-          `/api/shift?startDate=${monthStart}&endDate=${monthEnd}&limit=1000`
-        );
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch shifts');
-        }
-        
-        const data = await response.json();
-        console.log('[fetchMonthShifts] Received', data.shifts?.length || 0, 'shifts from API');
-        
-        // Get the calendar view range (including days from previous/next month)
-        const calendarStart = currentDate.startOf('month').startOf('isoWeek');
-        const calendarEnd = currentDate.endOf('month').endOf('isoWeek');
-        
-        console.log('[fetchMonthShifts] Calendar range:', calendarStart.format('YYYY-MM-DD'), 'to', calendarEnd.format('YYYY-MM-DD'));
+      console.log('[fetchMonthShifts] Fetching shifts from', monthStart, 'to', monthEnd);
+      
+      const response = await fetch(
+        `/api/shift?startDate=${monthStart}&endDate=${monthEnd}&limit=1000`
+      );
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch shifts');
+      }
+      
+      const data = await response.json();
+      console.log('[fetchMonthShifts] Received', data.shifts?.length || 0, 'shifts from API');
+      
+      // Get the calendar view range (including days from previous/next month)
+      const calendarStart = currentDate.startOf('month').startOf('isoWeek');
+      const calendarEnd = currentDate.endOf('month').endOf('isoWeek');
+      
+      console.log('[fetchMonthShifts] Calendar range:', calendarStart.format('YYYY-MM-DD'), 'to', calendarEnd.format('YYYY-MM-DD'));
         
         // Process and group shifts by date
         const grouped = groupShiftsByDate(data.shifts || [], calendarStart, calendarEnd);
@@ -112,6 +111,7 @@ const Page: NextPage = () => {
       }
     };
 
+  useEffect(() => {
     fetchMonthShifts();
   }, [currentDate]);
 
@@ -259,13 +259,13 @@ const Page: NextPage = () => {
                         <div
                           key={`${shift.id}-${shift.occurrenceDate}-${idx}`}
                           className="bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 px-1.5 py-0.5 rounded text-xs truncate"
-                          title={`${shift.staff?.name || 'Unknown'} - ${dayjs(shift.start_time).format('h:mm A')} to ${dayjs(shift.end_time).format('h:mm A')}`}
+                          title={`${shift.staff?.name || 'Unknown'} - ${dayjs(`2000-01-01 ${shift.shift_start_time}`).format('h:mm A')} to ${dayjs(`2000-01-01 ${shift.shift_end_time}`).format('h:mm A')}`}
                         >
                           <div className="font-medium truncate">
                             {shift.staff?.name || 'Unknown'}
                           </div>
                           <div className="text-[10px] opacity-80">
-                            {dayjs(shift.start_time).format('h:mm A')} - {dayjs(shift.end_time).format('h:mm A')}
+                            {dayjs(`2000-01-01 ${shift.shift_start_time}`).format('h:mm A')} - {dayjs(`2000-01-01 ${shift.shift_end_time}`).format('h:mm A')}
                           </div>
                         </div>
                       ))}
@@ -287,6 +287,7 @@ const Page: NextPage = () => {
         open={sheetOpen}
         onOpenChange={setSheetOpen}
         selectedDate={selectedDate}
+        onRefreshShifts={fetchMonthShifts}
       />
     </div>
   );

@@ -21,8 +21,10 @@ interface Shift {
   carerId: number;
   priceAmount: number;
   priceType: string;
-  start_time: string;
-  end_time: string;
+  startDate: string;
+  shift_start_time: string;
+  shift_end_time: string;
+  endDate: string;
   address: string;
   bonus: number | null;
   instruction: string | null;
@@ -45,12 +47,14 @@ interface ShiftListSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selectedDate: dayjs.Dayjs | null;
+  onRefreshShifts?: () => void;
 }
 
 export function ShiftListSheet({
   open,
   onOpenChange,
   selectedDate,
+  onRefreshShifts,
 }: ShiftListSheetProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [shifts, setShifts] = useState<Shift[]>([]);
@@ -78,9 +82,9 @@ export function ShiftListSheet({
       
       if (response.ok) {
         const data = await response.json();
-        // Sort shifts by start_time
+        // Sort shifts by shift_start_time
         const sortedShifts = (data.shifts || []).sort((a: Shift, b: Shift) => 
-          new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+          a.shift_start_time.localeCompare(b.shift_start_time)
         );
         setShifts(sortedShifts);
       }
@@ -105,6 +109,7 @@ export function ShiftListSheet({
   const handleSuccess = () => {
     fetchShifts();
     handleCloseForm();
+    onRefreshShifts?.();
   };
 
   if (!selectedDate) return null;
@@ -142,8 +147,8 @@ export function ShiftListSheet({
                     <div className="flex justify-between items-start">
                       <div className="space-y-1">
                         <div className="font-semibold">
-                          {dayjs(shift.start_time).format("h:mm A")} -{" "}
-                          {dayjs(shift.end_time).format("h:mm A")}
+                          {dayjs(`2000-01-01 ${shift.shift_start_time}`).format("h:mm A")} -{" "}
+                          {dayjs(`2000-01-01 ${shift.shift_end_time}`).format("h:mm A")}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           <span className="font-medium">Staff:</span> {shift.staff?.name || 'Unknown'}

@@ -34,12 +34,28 @@ const shiftSchema = z.object({
   carerId: z.number().min(1, "Carer is required"),
   priceAmount: z.number().min(0, "Price must be positive"),
   priceType: z.enum(["WEEKLY", "HOURLY", "DAILY", "MONTHLY"]),
-  start_time: z.string().min(1, "Start time is required"),
-  end_time: z.string().min(1, "End time is required"),
+  startDate: z.string().min(1, "Start date is required"),
+  shift_start_time: z.string().min(1, "Shift start time is required"),
+  shift_end_time: z.string().min(1, "Shift end time is required"),
   address: z.string().min(1, "Address is required"),
   bonus: z.number().optional(),
   instruction: z.string().optional(),
   recurrenceRule: z.string().optional(),
+}).refine((data) => {
+  const start = dayjs(`${data.startDate} ${data.shift_start_time}`);
+  const end = dayjs(`${data.startDate} ${data.shift_end_time}`);
+  return end.isAfter(start);
+}, {
+  message: "End time must be after start time",
+  path: ["shift_end_time"],
+}).refine((data) => {
+  const start = dayjs(`${data.startDate} ${data.shift_start_time}`);
+  const end = dayjs(`${data.startDate} ${data.shift_end_time}`);
+  const diffHours = end.diff(start, 'hour', true);
+  return diffHours >= 1;
+}, {
+  message: "Shift duration must be at least 1 hour",
+  path: ["shift_end_time"],
 });
 
 type ShiftFormData = z.infer<typeof shiftSchema>;
@@ -62,8 +78,10 @@ interface ShiftData {
   carerId: number;
   priceAmount: number;
   priceType: string;
-  start_time: string;
-  end_time: string;
+  startDate: string;
+  shift_start_time: string;
+  shift_end_time: string;
+  endDate: string;
   address: string;
   bonus: number | null;
   instruction: string | null;
@@ -93,6 +111,7 @@ export function CreateShiftForm({
   const [isLoadingStaff, setIsLoadingStaff] = useState(false);
   const [isLoadingCarer, setIsLoadingCarer] = useState(false);
   const [rrule, setRrule] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
   const isEditMode = !!shiftData;
 
   const form = useForm({
@@ -101,12 +120,9 @@ export function CreateShiftForm({
       carerId: shiftData?.carerId || (undefined as number | undefined),
       priceAmount: shiftData?.priceAmount || 0,
       priceType: (shiftData?.priceType || "HOURLY") as ShiftFormData["priceType"],
-      start_time: shiftData?.start_time 
-        ? dayjs(shiftData.start_time).format("YYYY-MM-DDTHH:mm")
-        : selectedDate.format("YYYY-MM-DDTHH:mm"),
-      end_time: shiftData?.end_time
-        ? dayjs(shiftData.end_time).format("YYYY-MM-DDTHH:mm")
-        : selectedDate.add(1, "hour").format("YYYY-MM-DDTHH:mm"),
+      startDate: shiftData?.startDate || selectedDate.format("YYYY-MM-DD"),
+      shift_start_time: shiftData?.shift_start_time || "09:00",
+      shift_end_time: shiftData?.shift_end_time || "10:00",
       address: shiftData?.address || "",
       bonus: shiftData?.bonus || (0 as number | undefined),
       instruction: shiftData?.instruction || "",
@@ -115,9 +131,27 @@ export function CreateShiftForm({
     onSubmit: async ({ value }) => {
       setIsSubmitting(true);
       try {
-        // Calculate occurrences and summary if rrule exists
+        // Validate time constraints
+        const start = dayjs(`${value.startDate} ${value.shift_start_time}`);
+        const end = dayjs(`${value.startDate} ${value.shift_end_time}`);
+        
+        if (!end.isAfter(start)) {
+          showError("Invalid Time", "End time must be after start time");
+          setIsSubmitting(false);
+          return;
+        }
+        
+        const diffHours = end.diff(start, 'hour', true);
+        if (diffHours < 1) {
+          showError("Invalid Duration", "Shift duration must be at least 1 hour");
+          setIsSubmitting(false);
+          return;
+        }
+        
+        // Calculate occurrences, summary, and endDate if rrule exists
         let occurrences = null;
         let summary = null;
+        let calculatedEndDate = value.startDate; // Default to startDate if not repeating
         
         if (rrule) {
           try {
@@ -125,20 +159,24 @@ export function CreateShiftForm({
             const options = rule.origOptions;
             occurrences = options.count || null;
             summary = rule.toText();
+            
+            // Calculate endDate from last occurrence
+            const allOccurrences = rule.all();
+            if (allOccurrences.length > 0) {
+              const lastOccurrence = allOccurrences[allOccurrences.length - 1];
+              calculatedEndDate = dayjs(lastOccurrence).format('YYYY-MM-DD');
+            }
           } catch (e) {
             console.error("Error parsing rrule:", e);
           }
         }
 
-        // Calculate hours from start_time and end_time
-        const start = dayjs(value.start_time);
-        const end = dayjs(value.end_time);
+        // Calculate hours from shift times
         const hours = end.diff(start, 'hour', true);
 
         const payload = {
           ...value,
-          start_time: new Date(value.start_time).toISOString(),
-          end_time: new Date(value.end_time).toISOString(),
+          endDate: calculatedEndDate,
           hours,
           recurrenceRule: rrule || null,
           occurrences,
@@ -177,19 +215,52 @@ export function CreateShiftForm({
     },
   });
 
-  // Initialize rrule from shiftData
+  // Initialize rrule and endDate from shiftData
   useEffect(() => {
     if (shiftData?.recurrenceRule) {
       setRrule(shiftData.recurrenceRule);
     }
+    if (shiftData?.endDate) {
+      setEndDate(shiftData.endDate);
+    }
   }, [shiftData]);
+
+  // Calculate endDate automatically when rrule or startDate changes
+  useEffect(() => {
+    const startDateValue = form.getFieldValue('startDate');
+    
+    if (!startDateValue) {
+      setEndDate(selectedDate.format("YYYY-MM-DD"));
+      return;
+    }
+    
+    if (!rrule) {
+      // If no recurrence, endDate = startDate
+      setEndDate(startDateValue);
+    } else {
+      // Calculate endDate from last occurrence
+      try {
+        const rule = RRule.fromString(rrule);
+        const allOccurrences = rule.all();
+        if (allOccurrences.length > 0) {
+          const lastOccurrence = allOccurrences[allOccurrences.length - 1];
+          setEndDate(dayjs(lastOccurrence).format('YYYY-MM-DD'));
+        } else {
+          setEndDate(startDateValue);
+        }
+      } catch (e) {
+        console.error("Error calculating endDate:", e);
+        setEndDate(startDateValue);
+      }
+    }
+  }, [rrule, form, selectedDate]);
 
   // Fetch staff
   useEffect(() => {
     const fetchStaff = async () => {
       setIsLoadingStaff(true);
       try {
-        const response = await fetch("/api/staff?limit=1000");
+        const response = await fetch("/api/staff?limit=1000&status=ACTIVE");
         if (response.ok) {
           const data = await response.json();
           setStaffList(data.staff || []);
@@ -257,7 +328,7 @@ export function CreateShiftForm({
               <div className="space-y-2">
                 <Label htmlFor="staffId">Staff *</Label>
                 <Select
-                  value={field.state.value ? field.state.value.toString() : undefined}
+                  value={field.state.value ? field.state.value.toString() : ""}
                   onValueChange={(value) => field.handleChange(parseInt(value))}
                   disabled={isLoadingStaff}
                 >
@@ -285,7 +356,7 @@ export function CreateShiftForm({
               <div className="space-y-2">
                 <Label htmlFor="carerId">Carer *</Label>
                 <Select
-                  value={field.state.value ? field.state.value.toString() : undefined}
+                  value={field.state.value ? field.state.value.toString() : ""}
                   onValueChange={(value) => field.handleChange(parseInt(value))}
                   disabled={isLoadingCarer}
                 >
@@ -352,15 +423,33 @@ export function CreateShiftForm({
             </form.Field>
           </div>
 
-          {/* Start and End Time */}
+          {/* Start Date */}
+          <form.Field name="startDate">
+            {(field) => (
+              <div className="space-y-2">
+                <Label htmlFor="startDate">Start Date *</Label>
+                <Input
+                  id="startDate"
+                  type="date"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                />
+                {field.state.meta.errors && (
+                  <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
+                )}
+              </div>
+            )}
+          </form.Field>
+
+          {/* Shift Start and End Time */}
           <div className="grid grid-cols-2 gap-4">
-            <form.Field name="start_time">
+            <form.Field name="shift_start_time">
               {(field) => (
                 <div className="space-y-2">
-                  <Label htmlFor="start_time">Start Time *</Label>
+                  <Label htmlFor="shift_start_time">Shift Start Time *</Label>
                   <Input
-                    id="start_time"
-                    type="datetime-local"
+                    id="shift_start_time"
+                    type="time"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                   />
@@ -371,13 +460,13 @@ export function CreateShiftForm({
               )}
             </form.Field>
 
-            <form.Field name="end_time">
+            <form.Field name="shift_end_time">
               {(field) => (
                 <div className="space-y-2">
-                  <Label htmlFor="end_time">End Time *</Label>
+                  <Label htmlFor="shift_end_time">Shift End Time *</Label>
                   <Input
-                    id="end_time"
-                    type="datetime-local"
+                    id="shift_end_time"
+                    type="time"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                   />
@@ -387,6 +476,21 @@ export function CreateShiftForm({
                 </div>
               )}
             </form.Field>
+          </div>
+
+          {/* End Date (Read-only, auto-calculated) */}
+          <div className="space-y-2">
+            <Label htmlFor="endDate">End Date (Auto-calculated)</Label>
+            <Input
+              id="endDate"
+              type="date"
+              value={endDate}
+              readOnly
+              className="bg-muted cursor-not-allowed"
+            />
+            <p className="text-xs text-muted-foreground">
+              {rrule ? "Calculated from recurrence rule" : "Same as start date (no recurrence)"}
+            </p>
           </div>
 
           {/* Address */}
@@ -448,11 +552,7 @@ export function CreateShiftForm({
             <RRuleGenerator 
               value={rrule} 
               onChange={setRrule} 
-              startDate={selectedDate}
-              endTime={form.getFieldValue("end_time")}
-              onEndTimeChange={(newEndTime) => {
-                form.setFieldValue("end_time", newEndTime);
-              }}
+              startDate={dayjs(form.getFieldValue("startDate") || selectedDate.format("YYYY-MM-DD"))}
             />
           </div>
 

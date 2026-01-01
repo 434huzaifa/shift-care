@@ -111,7 +111,10 @@ export async function DELETE(
       where: { id: staffId },
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ 
+      success: true,
+      message: "Staff and all related shifts deleted successfully" 
+    });
   } catch (error: unknown) {
     console.error("Error deleting staff:", error);
     

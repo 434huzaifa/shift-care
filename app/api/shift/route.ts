@@ -11,8 +11,10 @@ export async function POST(request: Request) {
       carerId,
       priceAmount,
       priceType,
-      start_time,
-      end_time,
+      startDate,
+      shift_start_time,
+      shift_end_time,
+      endDate,
       hours,
       address,
       bonus,
@@ -23,7 +25,7 @@ export async function POST(request: Request) {
     } = body;
 
     // Validate required fields
-    if (!staffId || !priceAmount || !priceType || !start_time || !end_time || !address) {
+    if (!staffId || !carerId || !priceAmount || !priceType || !startDate || !shift_start_time || !shift_end_time || !endDate || !address) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -36,8 +38,10 @@ export async function POST(request: Request) {
         carerId: parseInt(carerId),
         priceAmount: parseFloat(priceAmount),
         priceType,
-        start_time: new Date(start_time),
-        end_time: new Date(end_time),
+        startDate,
+        shift_start_time,
+        shift_end_time,
+        endDate,
         hours: hours ? parseFloat(hours) : null,
         address,
         bonus: bonus ? parseFloat(bonus) : null,
@@ -59,7 +63,7 @@ export async function POST(request: Request) {
     // Handle Prisma errors
     if (error?.code === "P2003") {
       return NextResponse.json(
-        { error: "Invalid staff ID" },
+        { error: "Invalid staff or carer ID" },
         { status: 400 }
       );
     }
@@ -90,14 +94,20 @@ export async function GET(request: Request) {
     }
 
     if (startDate && endDate) {
-      // Parse dates as local dates and convert to start/end of day in local timezone
-      const startDateTime = new Date(startDate + 'T00:00:00');
-      const endDateTime = new Date(endDate + 'T23:59:59.999');
-      
-      where.start_time = {
-        gte: startDateTime,
-        lte: endDateTime,
-      };
+      // Query shifts where the date range overlaps with our query range
+      // A shift overlaps if: startDate <= endDate AND endDate >= startDate
+      where.AND = [
+        {
+          startDate: {
+            lte: endDate,
+          },
+        },
+        {
+          endDate: {
+            gte: startDate,
+          },
+        },
+      ];
     }
 
     const [shifts, total] = await Promise.all([
@@ -107,9 +117,14 @@ export async function GET(request: Request) {
           staff: true,
           carer: true,
         },
-        orderBy: {
-          start_time: "asc",
-        },
+        orderBy: [
+          {
+            startDate: "asc",
+          },
+          {
+            shift_start_time: "asc",
+          },
+        ],
         skip,
         take: limit,
       }),

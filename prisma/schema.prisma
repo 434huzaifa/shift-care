@@ -61,22 +61,24 @@ model Carer {
 }
 
 model Shift {
-  id             Int       @id @default(autoincrement())
-  staffId        Int
-  carerId        Int
-  priceAmount    Float
-  priceType      PriceType
-  start_time     DateTime
-  end_time       DateTime
-  hours          Float?
-  recurrenceRule String?
-  occurrences    Int?
-  summary        String?
-  address        String
-  bonus          Float?
-  instruction    String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id               Int       @id @default(autoincrement())
+  staffId          Int
+  carerId          Int
+  priceAmount      Float
+  priceType        PriceType
+  startDate        String    // Date in YYYY-MM-DD format
+  shift_start_time String    // Time in HH:mm format
+  shift_end_time   String    // Time in HH:mm format
+  endDate          String    // Date in YYYY-MM-DD format (calculated from recurrence)
+  hours            Float?
+  recurrenceRule   String?
+  occurrences      Int?
+  summary          String?
+  address          String
+  bonus            Float?
+  instruction      String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   staff Staff @relation(fields: [staffId], references: [id], onDelete: Cascade)
   carer Carer @relation(fields: [carerId], references: [id], onDelete: Cascade)

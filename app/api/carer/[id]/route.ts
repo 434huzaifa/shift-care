@@ -89,7 +89,10 @@ export async function DELETE(
       where: { id: carerId },
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ 
+      success: true,
+      message: "Carer and all related shifts deleted successfully" 
+    });
   } catch (error: unknown) {
     console.error("Error deleting carer:", error);
     

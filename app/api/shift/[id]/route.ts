@@ -45,8 +45,10 @@ export async function PUT(
       carerId,
       priceAmount,
       priceType,
-      start_time,
-      end_time,
+      startDate,
+      shift_start_time,
+      shift_end_time,
+      endDate,
       hours,
       address,
       bonus,
@@ -63,8 +65,10 @@ export async function PUT(
         ...(carerId && { carerId: parseInt(carerId) }),
         ...(priceAmount && { priceAmount: parseFloat(priceAmount) }),
         ...(priceType && { priceType }),
-        ...(start_time && { start_time: new Date(start_time) }),
-        ...(end_time && { end_time: new Date(end_time) }),
+        ...(startDate && { startDate }),
+        ...(shift_start_time && { shift_start_time }),
+        ...(shift_end_time && { shift_end_time }),
+        ...(endDate && { endDate }),
         ...(hours !== undefined && { hours: hours ? parseFloat(hours) : null }),
         ...(address && { address }),
         bonus: bonus !== undefined ? (bonus ? parseFloat(bonus) : null) : undefined,
@@ -89,7 +93,7 @@ export async function PUT(
 
     if (error?.code === "P2003") {
       return NextResponse.json(
-        { error: "Invalid staff ID" },
+        { error: "Invalid staff or carer ID" },
         { status: 400 }
       );
     }
