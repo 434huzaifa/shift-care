@@ -122,35 +122,45 @@ export function RRuleGenerator({ value, onChange, startDate, endTime, onEndTimeC
         const rule = RRule.fromString(value);
         const options = rule.origOptions;
         
-        setEnabled(true);
-        if (options.freq !== undefined) setFreq(options.freq);
-        if (options.interval) setInterval(options.interval);
-        if (options.count) {
-          setCount(options.count);
-          setEndType("count");
-        }
-        if (options.byweekday) {
-          const weekdays = Array.isArray(options.byweekday) 
-            ? options.byweekday.map((day: any) => typeof day === 'number' ? day : day.weekday)
-            : [typeof options.byweekday === 'number' ? options.byweekday : options.byweekday.weekday];
-          setByweekday(weekdays);
-        }
-        
-        setIsInitialized(true);
+        // Use queueMicrotask to schedule state updates after the effect
+        queueMicrotask(() => {
+          setEnabled(true);
+          if (options.freq !== undefined) setFreq(options.freq);
+          if (options.interval) setInterval(options.interval);
+          if (options.count) {
+            setCount(options.count);
+            setEndType("count");
+          }
+          if (options.byweekday) {
+            const weekdays = Array.isArray(options.byweekday) 
+              ? options.byweekday.map((day: any) => {
+                  if (typeof day === 'number') return day;
+                  if (typeof day === 'object' && 'weekday' in day) return day.weekday;
+                  return day;
+                })
+              : [typeof options.byweekday === 'number' 
+                  ? options.byweekday 
+                  : typeof options.byweekday === 'object' && 'weekday' in options.byweekday
+                    ? options.byweekday.weekday
+                    : options.byweekday];
+            setByweekday(weekdays);
+          }
+          setIsInitialized(true);
+        });
       } catch (error) {
         console.error("Error parsing RRule:", error);
       }
     } else if (!value && isInitialized) {
-      setIsInitialized(false);
+      queueMicrotask(() => setIsInitialized(false));
     }
   }, [value, isInitialized]);
 
   // Adjust interval when frequency changes if it exceeds the new max
   useEffect(() => {
     if (interval > maxInterval) {
-      setInterval(maxInterval);
+      queueMicrotask(() => setInterval(maxInterval));
     }
-  }, [freq, maxInterval]);
+  }, [freq, maxInterval, interval]);
 
   // Generate RRule string
   useEffect(() => {

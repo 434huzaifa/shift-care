@@ -32,6 +32,7 @@ interface Shift {
   recurrenceRule: string | null;
   occurrences: number | null;
   summary: string | null;
+  hours: number | null;
   staff?: {
     id: number;
     name: string;
@@ -60,7 +61,7 @@ export function ShiftListSheet({
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [shifts, setShifts] = useState<ShiftOccurrence[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
+  const [selectedShift, setSelectedShift] = useState<ShiftOccurrence | null>(null);
 
   useEffect(() => {
     if (open && selectedDate) {
@@ -112,7 +113,7 @@ export function ShiftListSheet({
     }
   };
 
-  const handleShiftClick = (shift: Shift) => {
+  const handleShiftClick = (shift: ShiftOccurrence) => {
     setSelectedShift(shift);
     setShowCreateForm(true);
   };
@@ -172,11 +173,6 @@ export function ShiftListSheet({
                         <div className="text-sm text-muted-foreground">
                           <span className="font-medium">Carer:</span> {shift.carer?.name || 'Unknown'}
                         </div>
-                        {shift.occurrences && (
-                          <div className="text-xs text-blue-600">
-                            🔁 {shift.occurrences} occurrences
-                          </div>
-                        )}
                       </div>
                       <div className="text-right">
                         <div className="font-semibold">
@@ -195,11 +191,6 @@ export function ShiftListSheet({
                     {shift.address && (
                       <div className="text-xs text-muted-foreground mt-2">
                         📍 {shift.address}
-                      </div>
-                    )}
-                    {shift.summary && (
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {shift.summary}
                       </div>
                     )}
                   </div>
@@ -226,7 +217,7 @@ export function ShiftListSheet({
         open={showCreateForm}
         onOpenChange={handleCloseForm}
         selectedDate={selectedDate}
-        shiftData={selectedShift}
+        shiftData={selectedShift as any}
         onSuccess={handleSuccess}
       />
     </>
