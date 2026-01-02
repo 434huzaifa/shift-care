@@ -254,8 +254,6 @@ export function CreateStaffForm({
         const url = staffData ? `/api/staff/${staffData.id}` : "/api/staff";
         const method = staffData ? "PUT" : "POST";
         
-        console.log("Form submission body:", value);
-        
         const response = await fetch(url, {
           method,
           headers: {

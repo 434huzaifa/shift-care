@@ -298,7 +298,7 @@ export function CreateShiftForm({
               calculatedEndDate = dayjs(lastOccurrence).format('YYYY-MM-DD');
             }
           } catch (e) {
-            console.error("Error parsing rrule:", e);
+            // Failed to parse rrule
           }
         }
 
@@ -341,7 +341,6 @@ export function CreateShiftForm({
             }
           }
         } catch (conflictError) {
-          console.error('Error checking conflicts:', conflictError);
           // Continue anyway if conflict check fails
         }
 
@@ -428,7 +427,6 @@ export function CreateShiftForm({
           setEndDate(startDateValue);
         }
       } catch (e) {
-        console.error("Error calculating endDate:", e);
         setEndDate(startDateValue);
       }
     }
@@ -445,7 +443,6 @@ export function CreateShiftForm({
           setStaffList(data.staff || []);
         }
       } catch (error) {
-        console.error("Error fetching staff:", error);
         showError("Failed to load staff", "Please refresh the page");
       } finally {
         setIsLoadingStaff(false);
@@ -468,7 +465,6 @@ export function CreateShiftForm({
           setCarerList(data.carers || []);
         }
       } catch (error) {
-        console.error("Error fetching carer:", error);
         showError("Failed to load carers", "Please refresh the page");
       } finally {
         setIsLoadingCarer(false);

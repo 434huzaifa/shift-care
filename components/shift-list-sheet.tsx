@@ -83,7 +83,6 @@ export function ShiftListSheet({
       
       if (response.ok) {
         const data = await response.json();
-        console.log('[ShiftListSheet] Raw API response:', data.shifts?.length, 'shifts');
         
         // Use the same expandShiftOccurrences function that the calendar uses
         const allOccurrences: ShiftOccurrence[] = [];
@@ -96,8 +95,6 @@ export function ShiftListSheet({
           allOccurrences.push(...occurrences);
         });
         
-        console.log('[ShiftListSheet] Expanded to', allOccurrences.length, 'occurrences for date', dateStr);
-        
         // Sort by shift_start_time
         const sortedShifts = allOccurrences.sort((a, b) => 
           a.shift_start_time.localeCompare(b.shift_start_time)
@@ -106,7 +103,6 @@ export function ShiftListSheet({
         setShifts(sortedShifts);
       }
     } catch (error) {
-      console.error("Error fetching shifts:", error);
       showError("Failed to load shifts", "Please try again");
     } finally {
       setIsLoading(false);

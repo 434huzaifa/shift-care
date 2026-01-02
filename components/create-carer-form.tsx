@@ -94,8 +94,6 @@ export function CreateCarerForm({
         const url = carerData ? `/api/carer/${carerData.id}` : "/api/carer";
         const method = carerData ? "PUT" : "POST";
         
-        console.log("Form submission body:", value);
-        
         const response = await fetch(url, {
           method,
           headers: {

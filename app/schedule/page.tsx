@@ -65,15 +65,12 @@ const Page: NextPage = () => {
 
   // Fetch shifts for the current month
   const fetchMonthShifts = async () => {
-    console.log('[fetchMonthShifts] Starting fetch for', currentDate.format('YYYY-MM'));
     setIsLoading(true);
     
     try {
       // Get the first and last day of the month in YYYY-MM-DD format (local date)
       const monthStart = currentDate.startOf('month').format('YYYY-MM-DD');
       const monthEnd = currentDate.endOf('month').format('YYYY-MM-DD');
-      
-      console.log('[fetchMonthShifts] Fetching shifts from', monthStart, 'to', monthEnd);
       
       const response = await fetch(
         `/api/shift?startDate=${monthStart}&endDate=${monthEnd}&limit=1000`
@@ -84,21 +81,16 @@ const Page: NextPage = () => {
       }
       
       const data = await response.json();
-      console.log('[fetchMonthShifts] Received', data.shifts?.length || 0, 'shifts from API');
       
       // Get the calendar view range (including days from previous/next month)
       const calendarStart = currentDate.startOf('month').startOf('isoWeek');
       const calendarEnd = currentDate.endOf('month').endOf('isoWeek');
-      
-      console.log('[fetchMonthShifts] Calendar range:', calendarStart.format('YYYY-MM-DD'), 'to', calendarEnd.format('YYYY-MM-DD'));
         
         // Process and group shifts by date
         const grouped = groupShiftsByDate(data.shifts || [], calendarStart, calendarEnd);
-        console.log('[fetchMonthShifts] Grouped shifts into', Object.keys(grouped).length, 'days');
         
         setShiftsByDate(grouped);
       } catch (error) {
-        console.error('[fetchMonthShifts] Error fetching shifts:', error);
         setShiftsByDate({});
       } finally {
         setIsLoading(false);
@@ -155,7 +147,7 @@ const Page: NextPage = () => {
             value={{ value: currentDate.month(), label: months[currentDate.month()].label }}
             onChange={(option) => option && handleMonthChange(option.value.toString())}
             classNamePrefix="select"
-            className="w-[100px]"
+            className="w-25"
           />
 
           <Select
@@ -164,7 +156,7 @@ const Page: NextPage = () => {
             value={{ value: currentDate.year(), label: currentDate.year().toString() }}
             onChange={(option) => option && handleYearChange(option.value.toString())}
             classNamePrefix="select"
-            className="w-[100px]"
+            className="w-25"
           />
 
           <Button
