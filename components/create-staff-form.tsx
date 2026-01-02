@@ -518,27 +518,6 @@ export function CreateStaffForm({
           <div className="space-y-4 pt-2">
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Location & Nationality</h3>
 
-          <form.Field name="email">
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  placeholder="Enter email address"
-                />
-                {field.state.meta.errors && (
-                  <p className="text-sm text-destructive">
-                    {field.state.meta.errors.join(", ")}
-                  </p>
-                )}
-              </div>
-            )}
-          </form.Field>
-
           <form.Field name="nationality">
             {(field) => (
               <div className="space-y-2">
