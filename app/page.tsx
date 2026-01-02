@@ -40,7 +40,12 @@ const Page: NextPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [isMounted, setIsMounted] = useState(false);
   const limit = 12;
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const fetchStaff = async () => {
     setIsLoading(true);
@@ -149,18 +154,20 @@ const Page: NextPage = () => {
         </Button>
       </div>
 
-      <Tabs value={statusFilter} onValueChange={(value) => {
-        setStatusFilter(value);
-        setCurrentPage(1);
-      }}>
-        <TabsList>
-          <TabsTrigger value="ALL">All Staff</TabsTrigger>
-          <TabsTrigger value="ACTIVE">Active</TabsTrigger>
-          <TabsTrigger value="INACTIVE">Inactive</TabsTrigger>
-          <TabsTrigger value="ON_LEAVE">On Leave</TabsTrigger>
-          <TabsTrigger value="TERMINATED">Terminated</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      {isMounted && (
+        <Tabs value={statusFilter} onValueChange={(value) => {
+          setStatusFilter(value);
+          setCurrentPage(1);
+        }}>
+          <TabsList>
+            <TabsTrigger value="ALL">All Staff</TabsTrigger>
+            <TabsTrigger value="ACTIVE">Active</TabsTrigger>
+            <TabsTrigger value="INACTIVE">Inactive</TabsTrigger>
+            <TabsTrigger value="ON_LEAVE">On Leave</TabsTrigger>
+            <TabsTrigger value="TERMINATED">Terminated</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      )}
 
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
