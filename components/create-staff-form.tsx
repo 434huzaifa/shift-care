@@ -27,6 +27,7 @@ import {
 import { useState, useEffect } from "react";
 import { showSuccess, showError } from "@/lib/toast";
 import { Spinner } from "@/components/ui/spinner";
+import countriesData from "@/countries.json";
 
 const staffSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -45,14 +46,8 @@ const staffSchema = z.object({
 type StaffFormData = z.infer<typeof staffSchema>;
 
 interface Country {
-  name: {
-    common: string;
-    official: string;
-  };
-  flags: {
-    svg: string;
-    png: string;
-  };
+  name: string;
+  flag: string;
 }
 
 interface CreateStaffFormProps {
@@ -136,34 +131,12 @@ export function CreateStaffForm({
   };
 
   useEffect(() => {
-    const fetchCountries = async () => {
-      setIsLoadingCountries(true);
-      try {
-        const response = await fetch(
-          "https://restcountries.com/v3.1/all?fields=name,flags"
-        );
-        const data = await response.json();
-        if (Array.isArray(data)) {
-          const sortedCountries = data.sort((a, b) =>
-            a.name.common.localeCompare(b.name.common)
-          );
-          setCountries(sortedCountries);
-        } else {
-          console.error("Invalid countries data:", data);
-          setCountries([]);
-          showError("Failed to load countries", "Please try again");
-        }
-      } catch (error) {
-        console.error("Error fetching countries:", error);
-        setCountries([]);
-        showError("Failed to load countries", "Please refresh the page");
-      } finally {
-        setIsLoadingCountries(false);
-      }
-    };
-
     if (open) {
-      fetchCountries();
+      // Load countries from local JSON and sort alphabetically
+      const sortedCountries = [...countriesData].sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
+      setCountries(sortedCountries);
     }
   }, [open]);
 
@@ -175,7 +148,7 @@ export function CreateStaffForm({
         // Location has city + country
         setCityInput(locationParts[0]);
         const countryName = locationParts[1];
-        const country = countries.find(c => c.name.common === countryName);
+        const country = countries.find(c => c.name === countryName);
         if (country) {
           setSelectedCountry(country);
         }
@@ -183,7 +156,7 @@ export function CreateStaffForm({
         // Location is just country name
         setCityInput("");
         const countryName = locationParts[0];
-        const country = countries.find(c => c.name.common === countryName);
+        const country = countries.find(c => c.name === countryName);
         if (country) {
           setSelectedCountry(country);
         }
@@ -568,26 +541,6 @@ export function CreateStaffForm({
             )}
           </form.Field>
 
-          <form.Field name="jobTitle">
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor="jobTitle">Job Title *</Label>
-                <Input
-                  id="jobTitle"
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  placeholder="e.g., English Teacher"
-                />
-                {field.state.meta.errors && (
-                  <p className="text-sm text-destructive">
-                    {field.state.meta.errors.join(", ")}
-                  </p>
-                )}
-              </div>
-            )}
-          </form.Field>
-
           <form.Field name="nationality">
             {(field) => (
               <div className="space-y-2">
@@ -603,14 +556,14 @@ export function CreateStaffForm({
                   <Select
                     id="nationality"
                     options={countries.map((country) => ({
-                      value: country.name.common,
-                      label: country.name.common,
-                      flag: country.flags.svg,
+                      value: country.name,
+                      label: country.name,
+                      flag: country.flag,
                     }))}
                     value={field.state.value ? {
                       value: field.state.value,
                       label: field.state.value,
-                      flag: countries.find(c => c.name.common === field.state.value)?.flags.svg
+                      flag: countries.find(c => c.name === field.state.value)?.flag
                     } : null}
                     onChange={(option) => {
                       if (option) {
@@ -658,23 +611,23 @@ export function CreateStaffForm({
                     <Select
                       id="location"
                       options={countries.map((country) => ({
-                        value: country.name.common,
-                        label: country.name.common,
-                        flag: country.flags.svg,
+                        value: country.name,
+                        label: country.name,
+                        flag: country.flag,
                       }))}
                       value={selectedCountry ? {
-                        value: selectedCountry.name.common,
-                        label: selectedCountry.name.common,
-                        flag: selectedCountry.flags.svg
+                        value: selectedCountry.name,
+                        label: selectedCountry.name,
+                        flag: selectedCountry.flag
                       } : null}
                       onChange={(option) => {
-                        const selected = option ? countries.find(c => c.name.common === option.value) : null;
+                        const selected = option ? countries.find(c => c.name === option.value) : null;
                         setSelectedCountry(selected || null);
                         if (selected) {
-                          form.setFieldValue("locationFlag", selected.flags.svg);
+                          form.setFieldValue("locationFlag", selected.flag);
                           const location = cityInput.trim()
-                            ? `${cityInput.trim()}, ${selected.name.common}`
-                            : selected.name.common;
+                            ? `${cityInput.trim()}, ${selected.name}`
+                            : selected.name;
                           field.handleChange(location);
                         } else {
                           field.handleChange("");
@@ -703,8 +656,8 @@ export function CreateStaffForm({
                       setCityInput(e.target.value);
                       if (selectedCountry) {
                         const location = e.target.value.trim()
-                          ? `${e.target.value.trim()}, ${selectedCountry.name.common}`
-                          : selectedCountry.name.common;
+                          ? `${e.target.value.trim()}, ${selectedCountry.name}`
+                          : selectedCountry.name;
                         field.handleChange(location);
                       }
                     }}

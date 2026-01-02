@@ -14,10 +14,23 @@ import {
   SheetTitle,
   SheetFooter,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect, useRef } from "react";
 import { showSuccess, showError } from "@/lib/toast";
 import { Spinner } from "@/components/ui/spinner";
+import { FieldError } from "@/components/ui/field-error";
+import { getSelectedValue, formatSelectOption } from "@/lib/form-utils";
+import { DATE_PICKER_INPUT_CLASS } from "@/lib/constants";
 import dayjs from "dayjs";
 import { RRuleGenerator } from "./rrule-generator";
 import { RRule } from "rrule";
@@ -228,6 +241,7 @@ export function CreateShiftForm({
   const [isLoadingCarer, setIsLoadingCarer] = useState(false);
   const [rrule, setRrule] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
   const isEditMode = !!shiftData;
 
@@ -266,16 +280,16 @@ export function CreateShiftForm({
         }
         
         // Calculate occurrences, summary, and endDate if rrule exists
-        let occurrences = null;
-        let summary = null;
+        let occurrences: number | null = null;
+        let summary: string | null = null;
         let calculatedEndDate = value.startDate; // Default to startDate if not repeating
         
         if (rrule) {
           try {
             const rule = RRule.fromString(rrule);
             const options = rule.origOptions;
-            occurrences = options.count || null;
-            summary = rule.toText();
+            occurrences = options.count ?? null;
+            summary = rule.toText() ?? null;
             
             // Calculate endDate from last occurrence
             const allOccurrences = rule.all();
@@ -466,6 +480,30 @@ export function CreateShiftForm({
     }
   }, [open]);
 
+  const handleDelete = async () => {
+    if (!shiftData) return;
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`/api/shift/${shiftData.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete shift");
+      }
+
+      showSuccess("Shift deleted successfully!", `The shift has been removed from the schedule`);
+      setShowDeleteAlert(false);
+      onOpenChange(false);
+      onSuccess?.();
+    } catch {
+      showError("Failed to delete shift", "Please try again");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-175 overflow-y-auto p-4" ref={sheetRef}>
@@ -498,23 +536,15 @@ export function CreateShiftForm({
                 <Label htmlFor="staffId">Assigned Staff Member *</Label>
                 <Select
                   id="staffId"
-                  options={staffList.map((staff) => ({
-                    value: staff.id,
-                    label: `${staff.name} (${staff.email})`,
-                  }))}
-                  value={staffList.find(s => s.id === field.state.value) ? {
-                    value: field.state.value,
-                    label: `${staffList.find(s => s.id === field.state.value)?.name} (${staffList.find(s => s.id === field.state.value)?.email})`
-                  } : null}
+                  options={staffList.map(formatSelectOption)}
+                  value={getSelectedValue(staffList, field.state.value)}
                   onChange={(option) => field.handleChange(option?.value || 0)}
                   placeholder="Select staff"
                   isDisabled={isLoadingStaff}
                   isClearable
                   classNamePrefix="select"
                 />
-                {field.state.meta.errors && (
-                  <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
-                )}
+                <FieldError errors={field.state.meta.errors} />
               </div>
             )}
           </form.Field>
@@ -540,9 +570,7 @@ export function CreateShiftForm({
                   isClearable
                   classNamePrefix="select"
                 />
-                {field.state.meta.errors && (
-                  <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
-                )}
+                <FieldError errors={field.state.meta.errors} />
               </div>
             )}
           </form.Field>
@@ -568,9 +596,7 @@ export function CreateShiftForm({
                     placeholder="0.00"
                     className="h-11"
                   />
-                  {field.state.meta.errors && (
-                    <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
-                  )}
+                  <FieldError errors={field.state.meta.errors} />
                 </div>
               )}
             </form.Field>
@@ -642,12 +668,10 @@ export function CreateShiftForm({
                   )}
                   dateFormat="dd/MM/yyyy"
                   placeholderText="Select date"
-                  className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                  className={DATE_PICKER_INPUT_CLASS}
                   wrapperClassName="w-full"
                 />
-                {field.state.meta.errors && (
-                  <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
-                )}
+                <FieldError errors={field.state.meta.errors} />
               </div>
             )}
           </form.Field>
@@ -673,12 +697,10 @@ export function CreateShiftForm({
                     dateFormat="HH:mm"
                     timeFormat="HH:mm"
                     placeholderText="Select time"
-                    className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                    className={DATE_PICKER_INPUT_CLASS}
                     wrapperClassName="w-full"
                   />
-                  {field.state.meta.errors && (
-                    <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
-                  )}
+                  <FieldError errors={field.state.meta.errors} />
                 </div>
               )}
             </form.Field>
@@ -702,12 +724,10 @@ export function CreateShiftForm({
                     dateFormat="HH:mm"
                     timeFormat="HH:mm"
                     placeholderText="Select time"
-                    className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                    className={DATE_PICKER_INPUT_CLASS}
                     wrapperClassName="w-full"
                   />
-                  {field.state.meta.errors && (
-                    <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
-                  )}
+                  <FieldError errors={field.state.meta.errors} />
                 </div>
               )}
             </form.Field>
@@ -723,7 +743,7 @@ export function CreateShiftForm({
               dateFormat="dd/MM/yyyy"
               disabled
               placeholderText="Auto-calculated"
-              className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+              className={DATE_PICKER_INPUT_CLASS}
               wrapperClassName="w-full"
             />
             <p className="text-xs text-muted-foreground">
@@ -763,9 +783,7 @@ export function CreateShiftForm({
                   placeholder="Enter full address"
                   className="h-11"
                 />
-                {field.state.meta.errors && (
-                  <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
-                )}
+                <FieldError errors={field.state.meta.errors} />
               </div>
             )}
           </form.Field>
@@ -794,27 +812,7 @@ export function CreateShiftForm({
                 <Button
                   type="button"
                   variant="destructive"
-                  onClick={async () => {
-                    if (!shiftData) return;
-                    
-                    if (confirm("Are you sure you want to delete this shift?")) {
-                      try {
-                        const response = await fetch(`/api/shift/${shiftData.id}`, {
-                          method: "DELETE",
-                        });
-
-                        if (!response.ok) {
-                          throw new Error("Failed to delete shift");
-                        }
-
-                        showSuccess("Shift deleted", "The shift has been removed");
-                        onOpenChange(false);
-                        onSuccess?.();
-                      } catch {
-                        showError("Failed to delete shift", "Please try again");
-                      }
-                    }
-                  }}
+                  onClick={() => setShowDeleteAlert(true)}
                   disabled={isSubmitting}
                   size="lg"
                   className="mr-auto"
@@ -846,6 +844,26 @@ export function CreateShiftForm({
           </SheetFooter>
         </form>
       </SheetContent>
+
+      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this shift. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sheet>
   );
 }

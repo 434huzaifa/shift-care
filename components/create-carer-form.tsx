@@ -26,6 +26,8 @@ import {
 import { useState } from "react";
 import { showSuccess, showError } from "@/lib/toast";
 import { Spinner } from "@/components/ui/spinner";
+import { FieldError } from "@/components/ui/field-error";
+import { resizeImage, MAX_FILE_SIZE, IMAGE_SIZE } from "@/lib/image-utils";
 import Select from "react-select";
 
 const carerSchema = z.object({
@@ -59,38 +61,6 @@ export function CreateCarerForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
-
-  // Function to resize image to 256x256
-  const resizeImage = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      if (file.size > 5 * 1024 * 1024) {
-        reject(new Error("Image must be less than 5MB"));
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          canvas.width = 256;
-          canvas.height = 256;
-          const ctx = canvas.getContext("2d");
-          if (!ctx) {
-            reject(new Error("Failed to get canvas context"));
-            return;
-          }
-          ctx.drawImage(img, 0, 0, 256, 256);
-          const resizedBase64 = canvas.toDataURL("image/jpeg", 0.9);
-          resolve(resizedBase64);
-        };
-        img.onerror = () => reject(new Error("Failed to load image"));
-        img.src = e.target?.result as string;
-      };
-      reader.onerror = () => reject(new Error("Failed to read file"));
-      reader.readAsDataURL(file);
-    });
-  };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -156,6 +126,7 @@ export function CreateCarerForm({
         onOpenChange(false);
         onSuccess?.();
         form.reset();
+        setImagePreview(null);
       } catch {
         showError(
           "An unexpected error occurred",
@@ -193,7 +164,7 @@ export function CreateCarerForm({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="overflow-y-auto p-4">
+      <SheetContent className="sm:max-w-md overflow-y-auto p-4">
         <SheetHeader className="pb-6">
           <SheetTitle className="text-2xl">{carerData ? "Edit Carer" : "Create New Carer"}</SheetTitle>
           <SheetDescription>
@@ -225,11 +196,7 @@ export function CreateCarerForm({
                   placeholder="Enter full name"
                   className="h-11"
                 />
-                {field.state.meta.errors && (
-                  <p className="text-sm text-destructive">
-                    {field.state.meta.errors.join(", ")}
-                  </p>
-                )}
+                <FieldError errors={field.state.meta.errors} />
               </div>
             )}
           </form.Field>
@@ -274,7 +241,7 @@ export function CreateCarerForm({
                       className="cursor-pointer"
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Max 5MB. Image will be resized to 256x256px
+                      Max {MAX_FILE_SIZE / 1024 / 1024}MB. Image will be resized to {IMAGE_SIZE}x{IMAGE_SIZE}px
                     </p>
                     {carerData && !imagePreview && (
                       <p className="text-xs text-muted-foreground mt-1 italic">
@@ -305,11 +272,7 @@ export function CreateCarerForm({
                   placeholder="Enter email address"
                   className="h-11"
                 />
-                {field.state.meta.errors && (
-                  <p className="text-sm text-destructive">
-                    {field.state.meta.errors.join(", ")}
-                  </p>
-                )}
+                <FieldError errors={field.state.meta.errors} />
               </div>
             )}
           </form.Field>
@@ -340,11 +303,7 @@ export function CreateCarerForm({
                   }}
                   classNamePrefix="select"
                 />
-                {field.state.meta.errors && (
-                  <p className="text-sm text-destructive">
-                    {field.state.meta.errors.join(", ")}
-                  </p>
-                )}
+                <FieldError errors={field.state.meta.errors} />
               </div>
             )}
           </form.Field>

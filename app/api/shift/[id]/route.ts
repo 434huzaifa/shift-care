@@ -5,10 +5,11 @@ import { NextResponse } from "next/server";
 // GET - Get a single shift by ID
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id: idParam } = await params;
+    const id = parseInt(idParam);
 
     const shift = await prisma.shift.findUnique({
       where: { id },
@@ -35,10 +36,11 @@ export async function GET(
 // PUT - Update a shift
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id: idParam } = await params;
+    const id = parseInt(idParam);
     const body = await request.json();
     const {
       staffId,
@@ -108,10 +110,11 @@ export async function PUT(
 // DELETE - Delete a shift
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id: idParam } = await params;
+    const id = parseInt(idParam);
 
     await prisma.shift.delete({
       where: { id },
