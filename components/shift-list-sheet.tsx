@@ -133,7 +133,7 @@ export function ShiftListSheet({
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent className="sm:max-w-[600px]">
+        <SheetContent className="sm:max-w-150 p-4">
           <SheetHeader>
             <SheetTitle>
               Shifts - {selectedDate.format("dddd, MMMM D, YYYY")}

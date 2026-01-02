@@ -288,6 +288,49 @@ export function CreateShiftForm({
           }
         }
 
+        // Check for conflicts before creating/updating
+        try {
+          const conflictCheckResponse = await fetch('/api/shift/check-conflict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              staffId: value.staffId,
+              startDate: value.startDate,
+              endDate: calculatedEndDate,
+              shift_start_time: value.shift_start_time,
+              shift_end_time: value.shift_end_time,
+              recurrenceRule: rrule || null,
+              excludeShiftId: isEditMode ? shiftData.id : null,
+            }),
+          });
+
+          if (conflictCheckResponse.ok) {
+            const conflictData = await conflictCheckResponse.json();
+            
+            if (conflictData.hasConflicts) {
+              const conflicts = conflictData.conflicts;
+              const totalConflicts = conflictData.totalConflicts;
+              
+              // Format conflict message
+              let conflictMessage = '';
+              if (conflicts.length === 1) {
+                const conflict = conflicts[0];
+                conflictMessage = `Conflicts with ${conflict.carerName} on ${dayjs(conflict.date).format('MMM D, YYYY')} at ${conflict.time}`;
+              } else {
+                const firstConflict = conflicts[0];
+                conflictMessage = `${totalConflicts} conflict(s) found. First: ${firstConflict.carerName} on ${dayjs(firstConflict.date).format('MMM D, YYYY')} at ${firstConflict.time}`;
+              }
+              
+              showError('Schedule Conflict Detected', conflictMessage);
+              setIsSubmitting(false);
+              return;
+            }
+          }
+        } catch (conflictError) {
+          console.error('Error checking conflicts:', conflictError);
+          // Continue anyway if conflict check fails
+        }
+
         // Calculate hours from shift times
         const hours = end.diff(start, 'hour', true);
 
@@ -359,7 +402,10 @@ export function CreateShiftForm({
     } else {
       // Calculate endDate from last occurrence
       try {
-        const rule = RRule.fromString(rrule);
+        // Need to add DTSTART to the RRule string for proper parsing
+        const dtstartStr = dayjs(startDateValue).format("YYYYMMDDTHHmmss");
+        const fullRRule = `DTSTART:${dtstartStr}Z\n${rrule}`;
+        const rule = RRule.fromString(fullRRule);
         const allOccurrences = rule.all();
         if (allOccurrences.length > 0) {
           const lastOccurrence = allOccurrences[allOccurrences.length - 1];
@@ -422,9 +468,9 @@ export function CreateShiftForm({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-175 overflow-y-auto" ref={sheetRef}>
-        <SheetHeader>
-          <SheetTitle>{isEditMode ? "Edit Shift" : "Add New Shift"}</SheetTitle>
+      <SheetContent className="sm:max-w-175 overflow-y-auto p-4" ref={sheetRef}>
+        <SheetHeader className="pb-6">
+          <SheetTitle className="text-2xl">{isEditMode ? "Edit Shift" : "Add New Shift"}</SheetTitle>
           <SheetDescription>
             {isEditMode 
               ? `Update shift for ${selectedDate.format("MMMM D, YYYY")}`
@@ -439,13 +485,17 @@ export function CreateShiftForm({
             e.stopPropagation();
             form.handleSubmit();
           }}
-          className="space-y-4 mt-6"
+          className="space-y-6 mt-2"
         >
+          {/* Staff & Carer Section */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Assignment</h3>
+
           {/* Staff Dropdown */}
           <form.Field name="staffId">
             {(field) => (
               <div className="space-y-2">
-                <Label htmlFor="staffId">Staff *</Label>
+                <Label htmlFor="staffId">Assigned Staff Member *</Label>
                 <Select
                   id="staffId"
                   options={staffList.map((staff) => ({
@@ -473,7 +523,7 @@ export function CreateShiftForm({
           <form.Field name="carerId">
             {(field) => (
               <div className="space-y-2">
-                <Label htmlFor="carerId">Carer *</Label>
+                <Label htmlFor="carerId">Carer to Assist *</Label>
                 <Select
                   id="carerId"
                   options={carerList.map((carer) => ({
@@ -496,13 +546,18 @@ export function CreateShiftForm({
               </div>
             )}
           </form.Field>
+          </div>
+
+          {/* Pricing Section */}
+          <div className="space-y-4 pt-2">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Pricing</h3>
 
           {/* Price Amount and Type */}
           <div className="grid grid-cols-2 gap-4">
             <form.Field name="priceAmount">
               {(field) => (
                 <div className="space-y-2">
-                  <Label htmlFor="priceAmount">Price Amount *</Label>
+                  <Label htmlFor="priceAmount">Rate Amount *</Label>
                   <Input
                     id="priceAmount"
                     type="number"
@@ -511,6 +566,7 @@ export function CreateShiftForm({
                     value={field.state.value || ""}
                     onChange={(e) => field.handleChange(parseFloat(e.target.value))}
                     placeholder="0.00"
+                    className="h-11"
                   />
                   {field.state.meta.errors && (
                     <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
@@ -522,7 +578,7 @@ export function CreateShiftForm({
             <form.Field name="priceType">
               {(field) => (
                 <div className="space-y-2">
-                  <Label htmlFor="priceType">Price Type *</Label>
+                  <Label htmlFor="priceType">Rate Type *</Label>
                   <Select
                     id="priceType"
                     options={[
@@ -540,7 +596,29 @@ export function CreateShiftForm({
               )}
             </form.Field>
           </div>
+          {/* Bonus */}
+          <form.Field name="bonus">
+            {(field) => (
+              <div className="space-y-2">
+                <Label htmlFor="bonus">Bonus (Optional)</Label>
+                <Input
+                  id="bonus"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={field.state.value || ""}
+                  onChange={(e) => field.handleChange(e.target.value ? parseFloat(e.target.value) : 0)}
+                  placeholder="0.00"
+                  className="h-11"
+                />
+              </div>
+            )}
+          </form.Field>
+          </div>
 
+          {/* Schedule Section */}
+          <div className="space-y-4 pt-2">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Schedule</h3>
           {/* Start Date */}
           <form.Field name="startDate">
             {(field) => (
@@ -564,7 +642,7 @@ export function CreateShiftForm({
                   )}
                   dateFormat="dd/MM/yyyy"
                   placeholderText="Select date"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                  className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                   wrapperClassName="w-full"
                 />
                 {field.state.meta.errors && (
@@ -595,7 +673,7 @@ export function CreateShiftForm({
                     dateFormat="HH:mm"
                     timeFormat="HH:mm"
                     placeholderText="Select time"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                    className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                     wrapperClassName="w-full"
                   />
                   {field.state.meta.errors && (
@@ -624,7 +702,7 @@ export function CreateShiftForm({
                     dateFormat="HH:mm"
                     timeFormat="HH:mm"
                     placeholderText="Select time"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                    className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                     wrapperClassName="w-full"
                   />
                   {field.state.meta.errors && (
@@ -645,66 +723,13 @@ export function CreateShiftForm({
               dateFormat="dd/MM/yyyy"
               disabled
               placeholderText="Auto-calculated"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+              className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
               wrapperClassName="w-full"
             />
             <p className="text-xs text-muted-foreground">
               {rrule ? "Calculated from recurrence rule" : "Same as start date (no recurrence)"}
             </p>
           </div>
-
-          {/* Address */}
-          <form.Field name="address">
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor="address">Address *</Label>
-                <Input
-                  id="address"
-                  type="text"
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Enter address"
-                />
-                {field.state.meta.errors && (
-                  <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
-                )}
-              </div>
-            )}
-          </form.Field>
-
-          {/* Bonus */}
-          <form.Field name="bonus">
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor="bonus">Bonus (Optional)</Label>
-                <Input
-                  id="bonus"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={field.state.value || ""}
-                  onChange={(e) => field.handleChange(e.target.value ? parseFloat(e.target.value) : 0)}
-                  placeholder="0.00"
-                />
-              </div>
-            )}
-          </form.Field>
-
-          {/* Instruction */}
-          <form.Field name="instruction">
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor="instruction">Instructions (Optional)</Label>
-                <Textarea
-                  id="instruction"
-                  value={field.state.value || ""}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Enter any special instructions"
-                  rows={3}
-                />
-              </div>
-            )}
-          </form.Field>
 
           {/* RRule Generator */}
           <div className="space-y-2">
@@ -713,11 +738,58 @@ export function CreateShiftForm({
               value={rrule} 
               onChange={setRrule} 
               startDate={dayjs(form.getFieldValue("startDate") || selectedDate.format("YYYY-MM-DD"))}
+              endTime={endDate}
+              onEndTimeChange={(newEndTime) => {
+                setEndDate(newEndTime);
+              }}
             />
           </div>
+          </div>
 
-          <SheetFooter className="pt-4">
-            <div className="flex w-full gap-2">
+          {/* Location & Details Section */}
+          <div className="space-y-4 pt-2">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Location & Details</h3>
+
+          {/* Address */}
+          <form.Field name="address">
+            {(field) => (
+              <div className="space-y-2">
+                <Label htmlFor="address">Location Address *</Label>
+                <Input
+                  id="address"
+                  type="text"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Enter full address"
+                  className="h-11"
+                />
+                {field.state.meta.errors && (
+                  <p className="text-sm text-destructive">{field.state.meta.errors[0]}</p>
+                )}
+              </div>
+            )}
+          </form.Field>
+
+          {/* Instruction */}
+          <form.Field name="instruction">
+            {(field) => (
+              <div className="space-y-2">
+                <Label htmlFor="instruction">Special Instructions (Optional)</Label>
+                <Textarea
+                  id="instruction"
+                  value={field.state.value || ""}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Enter any special instructions or notes"
+                  rows={4}
+                  className="resize-none"
+                />
+              </div>
+            )}
+          </form.Field>
+          </div>
+
+          <SheetFooter className="pt-6 border-t">
+            <div className="flex w-full gap-3">
               {isEditMode && (
                 <Button
                   type="button"
@@ -744,6 +816,8 @@ export function CreateShiftForm({
                     }
                   }}
                   disabled={isSubmitting}
+                  size="lg"
+                  className="mr-auto"
                 >
                   Delete
                 </Button>
@@ -753,11 +827,12 @@ export function CreateShiftForm({
                 variant="outline"
                 onClick={() => onOpenChange(false)}
                 disabled={isSubmitting}
-                className="ml-auto"
+                size="lg"
+                className="flex-1"
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting} size="lg" className="flex-1">
                 {isSubmitting ? (
                   <>
                     <Spinner className="mr-2" />

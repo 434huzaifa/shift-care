@@ -109,8 +109,10 @@ export function expandShiftOccurrences(
 
   try {
     // Parse the RRule - use startDate as DTSTART
-    const dtstart = dayjs(shift.startDate).toDate();
-    const rule = RRule.fromString(shift.recurrenceRule, { dtstart });
+    // RRule.fromString expects full format with DTSTART
+    const dtstartStr = dayjs(shift.startDate).format("YYYYMMDDTHHmmss");
+    const fullRRule = `DTSTART:${dtstartStr}Z\n${shift.recurrenceRule}`;
+    const rule = RRule.fromString(fullRRule);
     console.log(`[expandShiftOccurrences] Parsed RRule successfully with DTSTART: ${shift.startDate}`);
     
     // Get ALL occurrences (not filtered by date range yet)

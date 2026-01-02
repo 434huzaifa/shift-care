@@ -351,9 +351,9 @@ export function CreateStaffForm({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>{staffData ? "Edit Staff" : "Create New Staff"}</SheetTitle>
+      <SheetContent className="overflow-y-auto p-4">
+        <SheetHeader className="pb-6">
+          <SheetTitle className="text-2xl">{staffData ? "Edit Staff" : "Create New Staff"}</SheetTitle>
           <SheetDescription>
             {staffData ? "Update staff member information" : "Add a new staff member to your team"}
           </SheetDescription>
@@ -365,39 +365,44 @@ export function CreateStaffForm({
             e.stopPropagation();
             form.handleSubmit();
           }}
-          className="space-y-4 py-4"
+          className="space-y-6 py-2"
         >
-          <form.Field name="name">
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor="name">Name *</Label>
-                <Input
-                  id="name"
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  placeholder="Enter staff name"
-                />
-                {field.state.meta.errors && (
-                  <p className="text-sm text-destructive">
-                    {field.state.meta.errors.join(", ")}
-                  </p>
-                )}
-              </div>
-            )}
-          </form.Field>
+          {/* Personal Information Section */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Personal Information</h3>
+            
+            <form.Field name="name">
+              {(field) => (
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name *</Label>
+                  <Input
+                    id="name"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    placeholder="Enter full name"
+                    className="h-11"
+                  />
+                  {field.state.meta.errors && (
+                    <p className="text-sm text-destructive">
+                      {field.state.meta.errors.join(", ")}
+                    </p>
+                  )}
+                </div>
+              )}
+            </form.Field>
 
-          {/* Profile Image Upload */}
-          <form.Field name="profileImage">
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor="profileImage">Profile Image</Label>
-                <div className="flex items-start gap-4">
-                  {imagePreview && (
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-border">
-                        <img
-                          src={imagePreview}
+            {/* Profile Image Upload */}
+            <form.Field name="profileImage">
+              {(field) => (
+                <div className="space-y-2">
+                  <Label htmlFor="profileImage">Profile Image</Label>
+                  <div className="flex items-start gap-4 p-4 border rounded-lg bg-muted/30">
+                    {imagePreview && (
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-border shadow-sm">
+                          <img
+                            src={imagePreview}
                           alt="Preview"
                           className="w-full h-full object-cover"
                         />
@@ -439,6 +444,108 @@ export function CreateStaffForm({
               </div>
             )}
           </form.Field>
+          </div>
+
+          {/* Contact Information Section */}
+          <div className="space-y-4 pt-2">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Contact Information</h3>
+            
+            <form.Field name="email">
+              {(field) => (
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    placeholder="Enter email address"
+                    className="h-11"
+                  />
+                  {field.state.meta.errors && (
+                    <p className="text-sm text-destructive">
+                      {field.state.meta.errors.join(", ")}
+                    </p>
+                  )}
+                </div>
+              )}
+            </form.Field>
+          </div>
+
+          {/* Employment Information Section */}
+          <div className="space-y-4 pt-2">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Employment Information</h3>
+            
+            <form.Field name="jobTitle">
+              {(field) => (
+                <div className="space-y-2">
+                  <Label htmlFor="jobTitle">Job Title *</Label>
+                  <Input
+                    id="jobTitle"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    placeholder="e.g., English Teacher"
+                    className="h-11"
+                  />
+                  {field.state.meta.errors && (
+                    <p className="text-sm text-destructive">
+                      {field.state.meta.errors.join(", ")}
+                    </p>
+                  )}
+                </div>
+              )}
+            </form.Field>
+
+          <form.Field name="status">
+            {(field) => (
+              <div className="space-y-2">
+                <Label htmlFor="status">Employment Status *</Label>
+                <Select
+                  id="status"
+                  options={[
+                    { value: "ACTIVE", label: "Active" },
+                    { value: "INACTIVE", label: "Inactive" },
+                    { value: "ON_LEAVE", label: "On Leave" },
+                    { value: "TERMINATED", label: "Terminated" },
+                  ]}
+                  value={
+                    field.state.value
+                      ? {
+                          value: field.state.value,
+                          label:
+                            field.state.value === "ACTIVE"
+                              ? "Active"
+                              : field.state.value === "INACTIVE"
+                              ? "Inactive"
+                              : field.state.value === "ON_LEAVE"
+                              ? "On Leave"
+                              : "Terminated",
+                        }
+                      : null
+                  }
+                  onChange={(option) =>
+                    field.handleChange(
+                      option?.value as StaffFormData["status"]
+                    )
+                  }
+                  placeholder="Select status"
+                  classNamePrefix="select"
+                />
+                {field.state.meta.errors && (
+                  <p className="text-sm text-destructive">
+                    {field.state.meta.errors.join(", ")}
+                  </p>
+                )}
+              </div>
+            )}
+          </form.Field>
+          </div>
+
+          {/* Location & Nationality Section */}
+          <div className="space-y-4 pt-2">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Location & Nationality</h3>
 
           <form.Field name="email">
             {(field) => (
@@ -614,6 +721,11 @@ export function CreateStaffForm({
               </div>
             )}
           </form.Field>
+          </div>
+
+          {/* Additional Information Section */}
+          <div className="space-y-4 pt-2">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Additional Information</h3>
 
           <form.Field name="gender">
             {(field) => (
@@ -645,43 +757,9 @@ export function CreateStaffForm({
             )}
           </form.Field>
 
-          <form.Field name="status">
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor="status">Status *</Label>
-                <Select
-                  id="status"
-                  options={[
-                    { value: "ACTIVE", label: "Active" },
-                    { value: "INACTIVE", label: "Inactive" },
-                    { value: "ON_LEAVE", label: "On Leave" },
-                    { value: "TERMINATED", label: "Terminated" },
-                  ]}
-                  value={field.state.value ? {
-                    value: field.state.value,
-                    label: field.state.value === "ACTIVE" ? "Active" : 
-                           field.state.value === "INACTIVE" ? "Inactive" : 
-                           field.state.value === "ON_LEAVE" ? "On Leave" : "Terminated"
-                  } : null}
-                  onChange={(option) => {
-                    if (option) {
-                      field.handleChange(option.value as "ACTIVE" | "INACTIVE" | "ON_LEAVE" | "TERMINATED");
-                    }
-                  }}
-                  classNamePrefix="select"
-                />
-                {field.state.meta.errors && (
-                  <p className="text-sm text-destructive">
-                    {field.state.meta.errors.join(", ")}
-                  </p>
-                )}
-              </div>
-            )}
-          </form.Field>
-
           <form.Field name="isFav">
             {(field) => (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-3 p-4 border rounded-lg bg-muted/30">
                 <input
                   type="checkbox"
                   id="isFav"
@@ -689,15 +767,16 @@ export function CreateStaffForm({
                   onChange={(e) => field.handleChange(e.target.checked)}
                   className="h-4 w-4 rounded border-input"
                 />
-                <Label htmlFor="isFav" className="cursor-pointer">
-                  Mark as favorite
+                <Label htmlFor="isFav" className="cursor-pointer font-normal">
+                  Mark as favorite staff member
                 </Label>
               </div>
             )}
           </form.Field>
+          </div>
 
-          <SheetFooter className="pt-4">
-            <div className="flex w-full gap-2">
+          <SheetFooter className="pt-6 border-t">
+            <div className="flex w-full gap-3">
               {staffData && (
                 <Button
                   type="button"
@@ -705,6 +784,7 @@ export function CreateStaffForm({
                   onClick={() => setShowDeleteAlert(true)}
                   disabled={isSubmitting}
                   className="mr-auto"
+                  size="lg"
                 >
                   Delete
                 </Button>
@@ -714,11 +794,17 @@ export function CreateStaffForm({
                 variant="outline"
                 onClick={() => onOpenChange(false)}
                 disabled={isSubmitting}
-                className={!staffData ? "ml-auto" : ""}
+                size="lg"
+                className="flex-1"
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+                size="lg"
+                className="flex-1"
+              >
                 {isSubmitting ? (
                   <>
                     <Spinner className="mr-2" />

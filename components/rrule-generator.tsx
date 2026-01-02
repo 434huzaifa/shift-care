@@ -8,6 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import dayjs from "dayjs";
+import dayOfYear from "dayjs/plugin/dayOfYear";
+import isLeapYear from "dayjs/plugin/isLeapYear";
+
+dayjs.extend(dayOfYear);
+dayjs.extend(isLeapYear);
 
 interface RRuleGeneratorProps {
   value: string;
@@ -27,6 +32,56 @@ const WEEKDAYS = [
   { label: "Sun", value: RRule.SU },
 ];
 
+/**
+ * Calculate maximum occurrences from start date to end of year
+ */
+function calculateMaxOccurrencesInYear(
+  startDate: dayjs.Dayjs,
+  freq: Frequency,
+  interval: number,
+  byweekday?: number[]
+): number {
+  const endOfYear = startDate.endOf('year');
+  
+  switch (freq) {
+    case RRule.DAILY: {
+      // Days remaining in the year (including start date)
+      const daysInYear = startDate.isLeapYear() ? 366 : 365;
+      const currentDayOfYear = startDate.dayOfYear();
+      const daysRemaining = daysInYear - currentDayOfYear + 1;
+      return Math.ceil(daysRemaining / interval);
+    }
+    
+    case RRule.WEEKLY: {
+      // Weeks remaining in the year
+      const weeksRemaining = endOfYear.diff(startDate, 'week') + 1;
+      const maxOccurrences = Math.ceil(weeksRemaining / interval);
+      
+      // If specific weekdays are selected, adjust the count
+      if (byweekday && byweekday.length > 0 && byweekday.length < 7) {
+        // Multiply by the number of selected weekdays per week
+        return Math.ceil(maxOccurrences * byweekday.length);
+      }
+      
+      return maxOccurrences;
+    }
+    
+    case RRule.MONTHLY: {
+      // Months remaining in the year (including current month)
+      const monthsRemaining = 12 - startDate.month();
+      return Math.ceil(monthsRemaining / interval);
+    }
+    
+    case RRule.YEARLY: {
+      // Only 1 occurrence this year
+      return 1;
+    }
+    
+    default:
+      return 52; // Fallback
+  }
+}
+
 export function RRuleGenerator({ value, onChange, startDate, endTime, onEndTimeChange }: RRuleGeneratorProps) {
   const [enabled, setEnabled] = useState(false);
   const [freq, setFreq] = useState<Frequency>(RRule.WEEKLY);
@@ -35,6 +90,30 @@ export function RRuleGenerator({ value, onChange, startDate, endTime, onEndTimeC
   const [byweekday, setByweekday] = useState<number[]>([]);
   const [endType, setEndType] = useState<"never" | "count">("never");
   const [isInitialized, setIsInitialized] = useState(false);
+
+  // Calculate max interval based on what's left in the year
+  const maxInterval = useMemo(() => {
+    const endOfYear = startDate.endOf('year');
+    
+    switch (freq) {
+      case RRule.DAILY: {
+        const daysInYear = startDate.isLeapYear() ? 366 : 365;
+        const currentDayOfYear = startDate.dayOfYear();
+        return daysInYear - currentDayOfYear + 1;
+      }
+      case RRule.WEEKLY: {
+        return endOfYear.diff(startDate, 'week') + 1;
+      }
+      case RRule.MONTHLY: {
+        return 12 - startDate.month();
+      }
+      case RRule.YEARLY: {
+        return 1;
+      }
+      default:
+        return 52;
+    }
+  }, [startDate, freq]);
 
   // Parse existing RRule value when component mounts or value changes
   useEffect(() => {
@@ -66,6 +145,13 @@ export function RRuleGenerator({ value, onChange, startDate, endTime, onEndTimeC
     }
   }, [value, isInitialized]);
 
+  // Adjust interval when frequency changes if it exceeds the new max
+  useEffect(() => {
+    if (interval > maxInterval) {
+      setInterval(maxInterval);
+    }
+  }, [freq, maxInterval]);
+
   // Generate RRule string
   useEffect(() => {
     if (!enabled) {
@@ -82,24 +168,35 @@ export function RRuleGenerator({ value, onChange, startDate, endTime, onEndTimeC
           dtstart: startDate.toDate(),
         };
 
-        if (endType === "count" && count) {
-          options.count = count;
-          
-          // Calculate the last occurrence date and update end_time
-          if (onEndTimeChange) {
-            const tempRule = new RRule({
-              ...options,
-              byweekday: byweekday.length > 0 && freq === RRule.WEEKLY ? byweekday : undefined,
-            } as any);
-            const occurrences = tempRule.all();
-            if (occurrences.length > 0) {
-              const lastOccurrence = occurrences[occurrences.length - 1];
-              onEndTimeChange(dayjs(lastOccurrence).format("YYYY-MM-DDTHH:mm"));
-            }
+        // Determine the count
+        let finalCount: number;
+        
+        if (endType === "count") {
+          // User wants to specify custom count
+          if (!count) {
+            // Don't generate RRule until user enters a count
+            onChange("");
+            return;
           }
-        } else if (endTime) {
-          // Use the end_time from the form as until date
-          options.until = new Date(endTime);
+          finalCount = count;
+        } else {
+          // endType === "never" - calculate max occurrences in year
+          finalCount = calculateMaxOccurrencesInYear(startDate, freq, interval, byweekday);
+        }
+        
+        options.count = finalCount;
+        
+        // Calculate the last occurrence date and update end_time
+        if (onEndTimeChange) {
+          const tempRule = new RRule({
+            ...options,
+            byweekday: byweekday.length > 0 && freq === RRule.WEEKLY ? byweekday : undefined,
+          } as any);
+          const occurrences = tempRule.all();
+          if (occurrences.length > 0) {
+            const lastOccurrence = occurrences[occurrences.length - 1];
+            onEndTimeChange(dayjs(lastOccurrence).format("YYYY-MM-DD"));
+          }
         }
 
         if (byweekday.length > 0 && freq === RRule.WEEKLY) {
@@ -116,7 +213,7 @@ export function RRuleGenerator({ value, onChange, startDate, endTime, onEndTimeC
     }, 100);
 
     return () => clearTimeout(timeoutId);
-  }, [enabled, freq, interval, count, byweekday, endType, startDate, endTime, onChange]);
+  }, [enabled, freq, interval, count, byweekday, endType, startDate, endTime, onChange, onEndTimeChange]);
 
   const handleWeekdayToggle = (day: number) => {
     setByweekday((prev) =>
@@ -174,8 +271,12 @@ export function RRuleGenerator({ value, onChange, startDate, endTime, onEndTimeC
                 <Input
                   type="number"
                   min="1"
+                  max={maxInterval}
                   value={interval}
-                  onChange={(e) => setInterval(parseInt(e.target.value) || 1)}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value) || 1;
+                    setInterval(Math.min(val, maxInterval));
+                  }}
                   className="w-20"
                 />
                 <Select
@@ -218,13 +319,18 @@ export function RRuleGenerator({ value, onChange, startDate, endTime, onEndTimeC
             <Label>Ends</Label>
             <Select
               options={[
-                { value: "never", label: "Never" },
+                { value: "never", label: "Never (Until end of year)" },
                 { value: "count", label: "After number of occurrences" },
               ]}
-              value={{ value: endType, label: endType === "never" ? "Never" : "After number of occurrences" }}
+              value={{ value: endType, label: endType === "never" ? "Never (Until end of year)" : "After number of occurrences" }}
               onChange={(option) => option && setEndType(option.value as typeof endType)}
               classNamePrefix="select"
             />
+            {endType === "never" && (
+              <p className="text-xs text-muted-foreground">
+                Will repeat until the end of {startDate.year()}
+              </p>
+            )}
           </div>
 
           {/* Count Input */}

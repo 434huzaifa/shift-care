@@ -1,3 +1,5 @@
+"use client";
+
 import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
 import { MdPersonAdd, MdSchedule } from "react-icons/md";
 import { TbOld } from "react-icons/tb";
@@ -12,8 +14,11 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export function AppSidebar() {
+  const pathname = usePathname();
+  
   return (
     <Sidebar>
       <SidebarContent>
@@ -22,7 +27,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem key="Manage Staff">
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild isActive={pathname === "/"}>
                   <Link href="/">
                     <MdPersonAdd />
                     <span>Manage Staff</span>
@@ -37,7 +42,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem key="Manage Carer">
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild isActive={pathname === "/carer"}>
                   <Link href="carer">
                     <TbOld />
                     <span>Carer</span>
@@ -52,7 +57,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem key="Manage Schedule">
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild isActive={pathname === "/schedule"}>
                   <Link href="schedule">
                     <MdSchedule />
                     <span>Schedule</span>
