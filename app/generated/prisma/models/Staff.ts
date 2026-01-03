@@ -1484,6 +1484,7 @@ export type StaffCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
    * The data used to create many Staff.
    */
   data: Prisma.StaffCreateManyInput | Prisma.StaffCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1502,6 +1503,7 @@ export type StaffCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extension
    * The data used to create many Staff.
    */
   data: Prisma.StaffCreateManyInput | Prisma.StaffCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**

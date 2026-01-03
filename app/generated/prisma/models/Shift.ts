@@ -840,6 +840,7 @@ export type ShiftCreateOrConnectWithoutStaffInput = {
 
 export type ShiftCreateManyStaffInputEnvelope = {
   data: Prisma.ShiftCreateManyStaffInput | Prisma.ShiftCreateManyStaffInput[]
+  skipDuplicates?: boolean
 }
 
 export type ShiftUpsertWithWhereUniqueWithoutStaffInput = {
@@ -928,6 +929,7 @@ export type ShiftCreateOrConnectWithoutCarerInput = {
 
 export type ShiftCreateManyCarerInputEnvelope = {
   data: Prisma.ShiftCreateManyCarerInput | Prisma.ShiftCreateManyCarerInput[]
+  skipDuplicates?: boolean
 }
 
 export type ShiftUpsertWithWhereUniqueWithoutCarerInput = {
@@ -1907,6 +1909,7 @@ export type ShiftCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
    * The data used to create many Shifts.
    */
   data: Prisma.ShiftCreateManyInput | Prisma.ShiftCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1925,6 +1928,7 @@ export type ShiftCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extension
    * The data used to create many Shifts.
    */
   data: Prisma.ShiftCreateManyInput | Prisma.ShiftCreateManyInput[]
+  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

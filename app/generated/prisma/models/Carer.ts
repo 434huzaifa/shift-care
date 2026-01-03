@@ -1224,6 +1224,7 @@ export type CarerCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Interna
    * The data used to create many Carers.
    */
   data: Prisma.CarerCreateManyInput | Prisma.CarerCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1242,6 +1243,7 @@ export type CarerCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extension
    * The data used to create many Carers.
    */
   data: Prisma.CarerCreateManyInput | Prisma.CarerCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
