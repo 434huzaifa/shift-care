@@ -19,7 +19,7 @@ export async function PUT(
     const body = await request.json();
 
     // Convert base64 image to buffer if provided
-    let profileImageBuffer = undefined;
+    let profileImageBuffer:Buffer<ArrayBuffer>|undefined = undefined;
     if (body.profileImage && body.profileImage.startsWith('data:image')) {
       const base64Data = body.profileImage.split(',')[1];
       profileImageBuffer = Buffer.from(base64Data, 'base64');
