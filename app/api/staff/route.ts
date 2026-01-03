@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Convert base64 image to buffer if provided
-    let profileImageBuffer = null;
+    let profileImageBuffer:Buffer<ArrayBuffer>|null = null;
     if (body.profileImage && body.profileImage.startsWith('data:image')) {
       const base64Data = body.profileImage.split(',')[1];
       profileImageBuffer = Buffer.from(base64Data, 'base64');
