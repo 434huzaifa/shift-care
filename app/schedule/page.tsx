@@ -90,7 +90,7 @@ const Page: NextPage = () => {
         const grouped = groupShiftsByDate(data.shifts || [], calendarStart, calendarEnd);
         
         setShiftsByDate(grouped);
-      } catch (error) {
+      } catch {
         setShiftsByDate({});
       } finally {
         setIsLoading(false);
@@ -99,6 +99,7 @@ const Page: NextPage = () => {
 
   useEffect(() => {
     fetchMonthShifts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentDate]);
 
   const handlePreviousMonth = () => {

@@ -65,7 +65,7 @@ const Page: NextPage = () => {
         setTotalPages(data.pagination.totalPages);
         setTotal(data.pagination.total);
       }
-    } catch (error) {
+    } catch {
       showError("Failed to fetch staff", "Please try refreshing the page");
     } finally {
       setIsLoading(false);
@@ -74,6 +74,7 @@ const Page: NextPage = () => {
 
   useEffect(() => {
     fetchStaff();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, statusFilter, searchQuery]);
 
   const handleToggleFavorite = async (id: number) => {
@@ -106,7 +107,7 @@ const Page: NextPage = () => {
       
       // Refetch to get updated order with favorites first
       await fetchStaff();
-    } catch (error) {
+    } catch {
       // Revert on error
       setStaff((prev) =>
         prev.map((s) => (s.id === id ? { ...s, isFav: staffMember.isFav } : s))

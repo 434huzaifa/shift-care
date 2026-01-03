@@ -56,6 +56,7 @@ const Page: NextPage = () => {
 
   useEffect(() => {
     fetchCarers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, searchQuery]);
 
   const handleEdit = (carer: Carer) => {
@@ -73,7 +74,7 @@ const Page: NextPage = () => {
   };
 
   const renderPageNumbers = () => {
-    const pages = [];
+    const pages: React.ReactNode[] = [];
     const maxVisible = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
     const endPage = Math.min(totalPages, startPage + maxVisible - 1);

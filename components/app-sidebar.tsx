@@ -1,6 +1,5 @@
 "use client";
 
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react";
 import { MdPersonAdd, MdSchedule } from "react-icons/md";
 import { TbOld } from "react-icons/tb";
 import {

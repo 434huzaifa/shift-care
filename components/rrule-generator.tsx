@@ -216,7 +216,7 @@ export function RRuleGenerator({ value, onChange, startDate, endTime, onEndTimeC
         const rule = new RRule(options);
         const rruleString = rule.toString().split("\n")[1]; // Get only RRULE part
         onChange(rruleString);
-      } catch (error) {
+      } catch {
         onChange("");
       }
     }, 100);

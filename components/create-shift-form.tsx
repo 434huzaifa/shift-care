@@ -158,6 +158,7 @@ const CustomHeader = ({
   );
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const shiftSchema = z.object({
   staffId: z.number().min(1, "Staff is required"),
   carerId: z.number().min(1, "Carer is required"),
@@ -297,7 +298,7 @@ export function CreateShiftForm({
               const lastOccurrence = allOccurrences[allOccurrences.length - 1];
               calculatedEndDate = dayjs(lastOccurrence).format('YYYY-MM-DD');
             }
-          } catch (e) {
+          } catch {
             // Failed to parse rrule
           }
         }
@@ -340,7 +341,7 @@ export function CreateShiftForm({
               return;
             }
           }
-        } catch (conflictError) {
+        } catch {
           // Continue anyway if conflict check fails
         }
 
@@ -426,7 +427,7 @@ export function CreateShiftForm({
         } else {
           setEndDate(startDateValue);
         }
-      } catch (e) {
+      } catch {
         setEndDate(startDateValue);
       }
     }
@@ -442,7 +443,7 @@ export function CreateShiftForm({
           const data = await response.json();
           setStaffList(data.staff || []);
         }
-      } catch (error) {
+      } catch {
         showError("Failed to load staff", "Please refresh the page");
       } finally {
         setIsLoadingStaff(false);
@@ -464,7 +465,7 @@ export function CreateShiftForm({
           const data = await response.json();
           setCarerList(data.carers || []);
         }
-      } catch (error) {
+      } catch {
         showError("Failed to load carers", "Please refresh the page");
       } finally {
         setIsLoadingCarer(false);

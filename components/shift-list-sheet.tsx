@@ -67,6 +67,7 @@ export function ShiftListSheet({
     if (open && selectedDate) {
       fetchShifts();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, selectedDate]);
 
   const fetchShifts = async () => {
@@ -102,7 +103,7 @@ export function ShiftListSheet({
         
         setShifts(sortedShifts);
       }
-    } catch (error) {
+    } catch {
       showError("Failed to load shifts", "Please try again");
     } finally {
       setIsLoading(false);

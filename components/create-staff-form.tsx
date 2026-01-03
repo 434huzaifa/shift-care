@@ -29,6 +29,7 @@ import { showSuccess, showError } from "@/lib/toast";
 import { Spinner } from "@/components/ui/spinner";
 import countriesData from "@/countries.json";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const staffSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.email("Invalid email address"),
@@ -196,6 +197,7 @@ export function CreateStaffForm({
         }
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [staffData, open, countries]);
 
   // Reset form and states when closing
@@ -208,6 +210,7 @@ export function CreateStaffForm({
         form.reset();
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, staffData]);
 
   const form = useForm({
@@ -268,7 +271,7 @@ export function CreateStaffForm({
           try {
             const errorData = await response.json();
             errorMessage = errorData.error || errorMessage;
-          } catch (parseError) {
+          } catch {
             // If JSON parsing fails, use status text or default message
             errorMessage = response.statusText || errorMessage;
           }
@@ -277,7 +280,7 @@ export function CreateStaffForm({
           return;
         }
 
-        const result = await response.json();
+        await response.json();
         showSuccess(
           staffData ? "Staff updated successfully!" : "Staff created successfully!",
           staffData ? `${value.name}'s information has been updated` : `${value.name} has been added to the team`
@@ -285,7 +288,7 @@ export function CreateStaffForm({
         onOpenChange(false);
         onSuccess?.();
         form.reset();
-      } catch (error: unknown) {
+      } catch {
         showError(
           "An unexpected error occurred",
           "Please check the form and try again"
@@ -313,7 +316,7 @@ export function CreateStaffForm({
       setShowDeleteAlert(false);
       onOpenChange(false);
       onSuccess?.();
-    } catch (error) {
+    } catch {
       showError("Failed to delete staff", "Please try again");
     } finally {
       setIsSubmitting(false);

@@ -56,7 +56,7 @@ const statusLabels = {
 
 export function StaffCard({ staff, onToggleFavorite, onEdit }: StaffCardProps) {
   // Handle profileImage - convert Buffer object to base64 string
-  let profileImageSrc = null;
+  let profileImageSrc: string | null = null;
   
   if (staff.profileImage) {
     if (typeof staff.profileImage === 'string') {

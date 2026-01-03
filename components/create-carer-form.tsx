@@ -30,6 +30,7 @@ import { FieldError } from "@/components/ui/field-error";
 import { resizeImage, MAX_FILE_SIZE, IMAGE_SIZE } from "@/lib/image-utils";
 import Select from "react-select";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const carerSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Invalid email address"),

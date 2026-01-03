@@ -130,7 +130,7 @@ export function expandShiftOccurrences(
     });
 
     return expandedShifts;
-  } catch (error) {
+  } catch {
     // Return the original shift as fallback
     return [{
       ...shift,
